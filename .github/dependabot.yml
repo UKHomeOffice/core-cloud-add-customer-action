@@ -1,0 +1,24 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "(GHA)"
+    reviewers:
+      - "UKHomeOffice/core-cloud-devops"
+    labels:
+      - "patch"
+      - "dependencies"
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "(NPM)"
+    reviewers:
+      - "UKHomeOffice/core-cloud-devops"
+    labels:
+      - "patch"
+      - "dependencies"
