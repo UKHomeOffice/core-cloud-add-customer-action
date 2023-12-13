@@ -1,0 +1,19 @@
+name: 'core-cloud-add-customer-action'
+description: 'GitHub Action to add a customer to the Core Cloud LZA config'
+author: 'ukhomeoffice'
+
+# Define your inputs here.
+inputs:
+  milliseconds:
+    description: 'Your input description here'
+    required: true
+    default: '1000'
+
+# Define your outputs here.
+outputs:
+  time:
+    description: 'Your output description here'
+
+runs:
+  using: node20
+  main: dist/index.js

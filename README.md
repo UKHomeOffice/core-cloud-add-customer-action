@@ -15,6 +15,6 @@ Before checking creating your Pull Request you should ensure that you have built
 
 A blocking workflow called [check-dist](.github/workflows/check-dist.yml) is enabled that checks this dist folder for changes happens at both push to main and on pull request events.
 
-## License
+## Licence
 
 This project is licensed under the MIT License - see the [LICENCE](./LICENCE.md) file for details.
