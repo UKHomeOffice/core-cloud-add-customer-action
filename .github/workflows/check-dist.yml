@@ -1,0 +1,8 @@
+name: 'Dist Diff'
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize ]
+
+jobs:
+  diff:
+    uses: UKHomeOffice/sas-github-workflows/.github/workflows/actions-check-dist.yml@v1
