@@ -4,10 +4,21 @@ author: 'ukhomeoffice'
 
 # Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  github_token:
+    description: 'Github API token'
     required: true
-    default: '1000'
+  file_path:
+    description: 'Relative path to the accounts-config.yaml file'
+    required: true
+  customer_id:
+    description: 'Unique name for the customer'
+    required: true
+  spoc_email:
+    description: 'Single point of contact email address'
+    required: true
+  environments:
+    description: 'CSV list of OUs to create accounts under'
+    required: true
 
 # Define your outputs here.
 outputs:
