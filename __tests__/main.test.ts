@@ -12,10 +12,8 @@ import * as main from '../src/main'
 // Mock the action's main function
 const runMock = jest.spyOn(main, 'run')
 
-// Other utilities
-const timeRegex = /^\d{2}:\d{2}:\d{2}/
-
 // Mock the GitHub Actions core library
+let infoMock: jest.SpyInstance
 let debugMock: jest.SpyInstance
 let errorMock: jest.SpyInstance
 let getInputMock: jest.SpyInstance
@@ -26,6 +24,7 @@ describe('action', () => {
   beforeEach(() => {
     jest.clearAllMocks()
 
+    infoMock = jest.spyOn(core, 'info').mockImplementation()
     debugMock = jest.spyOn(core, 'debug').mockImplementation()
     errorMock = jest.spyOn(core, 'error').mockImplementation()
     getInputMock = jest.spyOn(core, 'getInput').mockImplementation()
@@ -37,8 +36,16 @@ describe('action', () => {
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
-        case 'milliseconds':
-          return '500'
+        case 'github_token':
+          return 'GITHUB_TOKEN'
+        case 'file_path':
+          return './__tests__/files/empty.yaml'
+        case 'customer_id':
+          return 'CUSTOMER_ID'
+        case 'spoc_email':
+          return 'SPOC_EMAIL'
+        case 'environments':
+          return 'Dev,Test,Prod'
         default:
           return ''
       }
@@ -47,21 +54,9 @@ describe('action', () => {
     await main.run()
     expect(runMock).toHaveReturned()
 
-    // Verify that all of the core library functions were called correctly
-    expect(debugMock).toHaveBeenNthCalledWith(1, 'Waiting 500 milliseconds ...')
-    expect(debugMock).toHaveBeenNthCalledWith(
-      2,
-      expect.stringMatching(timeRegex)
-    )
-    expect(debugMock).toHaveBeenNthCalledWith(
-      3,
-      expect.stringMatching(timeRegex)
-    )
-    expect(setOutputMock).toHaveBeenNthCalledWith(
-      1,
-      'time',
-      expect.stringMatching(timeRegex)
-    )
+    expect(infoMock).toHaveBeenCalledWith(
+        `0 workload accounts loaded from file './__tests__/files/empty.yaml'`)
+
     expect(errorMock).not.toHaveBeenCalled()
   })
 
@@ -69,8 +64,16 @@ describe('action', () => {
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
-        case 'milliseconds':
-          return 'this is not a number'
+        case 'github_token':
+          return 'GITHUB_TOKEN'
+        case 'file_path':
+          return './__tests__/files/_.yaml'
+        case 'customer_id':
+          return 'CUSTOMER_ID'
+        case 'spoc_email':
+          return 'SPOC_EMAIL'
+        case 'environments':
+          return 'Dev,Test,Prod'
         default:
           return ''
       }
@@ -79,10 +82,9 @@ describe('action', () => {
     await main.run()
     expect(runMock).toHaveReturned()
 
-    // Verify that all of the core library functions were called correctly
-    expect(setFailedMock).toHaveBeenNthCalledWith(
-      1,
-      'milliseconds not a number'
+    // Verify error message is propagated to setFailed()
+    expect(setFailedMock).toHaveBeenCalledWith(
+      `Error loading workload accounts from file './__tests__/files/_.yaml'`
     )
     expect(errorMock).not.toHaveBeenCalled()
   })

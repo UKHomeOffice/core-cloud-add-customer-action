@@ -6,8 +6,15 @@ export type ActionInputParam = {
     default?: string
 }
 
+export type WorkloadAccount = {
+    name: string,
+    description: string,
+    email: string,
+    organizationalUnit: string,
+}
+
 export type AccountDoc = {
-    charts: { [key: string]: { service : string } }
+    workloadAccounts:  WorkloadAccount[]
 }
 
 export type ActionInput = Record<ActionInputKey, string>
