@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import { getActionInputs } from "./helpers";
-import { ActionInput, WorkloadAccount } from "./types";
+import { ActionInput, DeploymentEnvironment, WorkloadAccount } from "./types";
 import { loadWorkloadAccounts } from "./parser";
 
 /**
@@ -28,14 +28,47 @@ export async function run(): Promise<void> {
   core.info(`${workloadAccounts.length} workload accounts loaded from file '${inputs.file_path}'`);
 
   // for each environment
+  for(const deployEnv of environments(inputs.environments)) {
 
-  // Add a node  - create a unique name as customer_id + environment
+    const envName = deployEnv.toString();
 
-  // add a description "The" + customer_id + environment + "Account"
-  // add a unique email address
-  // split on @ and append '+' + customer_id + environment tolowercase
-  // Add the environment
+    const custName =  inputs.customer_id + envName
+
+    const description = `The ${inputs.customer_id} ${envName} Account`;
+
+    const emailSplit = inputs.spoc_email.split("@");
+    const email = `${emailSplit[0]}+${custName}${emailSplit[1]}`;
+
+
+    const workloadAccount = new WorkloadAccount(custName, description, email, deployEnv.toString());
+
+
+  }
+
+
 
 
   // Write the file
+}
+
+const environments = (labels: string) : DeploymentEnvironment[] => {
+  if (labels === undefined || labels === "") {
+    return [];
+  }
+
+  const environmentStrings = labels.split(",");
+
+  const environmentArray: DeploymentEnvironment[] = [];
+
+  for (const environmentString of environmentStrings) {
+    const environmentEnumValue: DeploymentEnvironment | undefined = DeploymentEnvironment[environmentString as keyof typeof DeploymentEnvironment];
+
+    if (environmentEnumValue !== undefined) {
+      environmentArray.push(environmentEnumValue);
+    } else {
+      core.warning(`Invalid color string: ${environmentString}`);
+    }
+  }
+
+  return environmentArray;
 }
