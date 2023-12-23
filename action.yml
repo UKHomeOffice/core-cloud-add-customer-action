@@ -4,9 +4,6 @@ author: 'ukhomeoffice'
 
 # Define your inputs here.
 inputs:
-  github_token:
-    description: 'Github API token'
-    required: true
   file_path:
     description: 'Relative path to the accounts-config.yaml file'
     required: true
@@ -16,7 +13,7 @@ inputs:
   spoc_email:
     description: 'Single point of contact email address'
     required: true
-  environments:
+  organisational_units:
     description: 'CSV list of OUs to create accounts under'
     required: true
 

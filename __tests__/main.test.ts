@@ -32,19 +32,46 @@ describe('action', () => {
     setOutputMock = jest.spyOn(core, 'setOutput').mockImplementation()
   })
 
-  it('sets the time output', async () => {
+  it('adds three new accounts', async () => {
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
-        case 'github_token':
-          return 'GITHUB_TOKEN'
         case 'file_path':
           return './__tests__/files/empty.yaml'
         case 'customer_id':
-          return 'CUSTOMER_ID'
+          return 'CUSTOMERID'
+        case 'spoc_email':
+          return 'account@example.com'
+        case 'organisational_units':
+          return 'Dev,Test,Prod'
+        default:
+          return ''
+      }
+    })
+
+    await main.run()
+    expect(runMock).toHaveReturned()
+
+    expect(infoMock).toHaveBeenNthCalledWith(1,
+        `0 workload accounts loaded from file './__tests__/files/empty.yaml'`)
+
+    expect(infoMock).toHaveBeenNthCalledWith(2,
+        `3 workload accounts written to file './__tests__/files/empty.yaml'`)
+
+    expect(errorMock).not.toHaveBeenCalled()
+  })
+
+  it('runs with no existing accounts', async () => {
+    // Set the action's inputs as return values from core.getInput()
+    getInputMock.mockImplementation((name: string): string => {
+      switch (name) {
+        case 'file_path':
+          return './__tests__/files/empty.yaml'
+        case 'customer_id':
+          return 'CUSTOMERID'
         case 'spoc_email':
           return 'SPOC_EMAIL'
-        case 'environments':
+        case 'organisational_units':
           return 'Dev,Test,Prod'
         default:
           return ''
@@ -60,19 +87,17 @@ describe('action', () => {
     expect(errorMock).not.toHaveBeenCalled()
   })
 
-  it('sets a failed status', async () => {
+  it('sets a failed status on missing file', async () => {
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
-        case 'github_token':
-          return 'GITHUB_TOKEN'
         case 'file_path':
           return './__tests__/files/_.yaml'
         case 'customer_id':
-          return 'CUSTOMER_ID'
+          return 'CUSTOMERID'
         case 'spoc_email':
           return 'SPOC_EMAIL'
-        case 'environments':
+        case 'organisational_units':
           return 'Dev,Test,Prod'
         default:
           return ''
@@ -84,8 +109,38 @@ describe('action', () => {
 
     // Verify error message is propagated to setFailed()
     expect(setFailedMock).toHaveBeenCalledWith(
-      `Error loading workload accounts from file './__tests__/files/_.yaml'`
+      `Error reading workload accounts from file './__tests__/files/_.yaml'`
     )
+
+    expect(errorMock).not.toHaveBeenCalled()
+  })
+
+  it('sets a failed status on invalid file', async () => {
+    // Set the action's inputs as return values from core.getInput()
+    getInputMock.mockImplementation((name: string): string => {
+      switch (name) {
+        case 'file_path':
+          return './__tests__/files/invalid.yaml'
+        case 'customer_id':
+          return 'CUSTOMERID'
+        case 'spoc_email':
+          return 'SPOC_EMAIL'
+        case 'organisational_units':
+          return 'Dev,Test,Prod'
+        default:
+          return ''
+      }
+    })
+
+    await main.run()
+    expect(runMock).toHaveReturned()
+
+    // Verify error message is propagated to setFailed()
+
+    expect(setFailedMock).toHaveBeenCalledWith(
+        `Error parsing workload accounts from file './__tests__/files/invalid.yaml', accounts section is null or undefined`
+    )
+
     expect(errorMock).not.toHaveBeenCalled()
   })
 })
