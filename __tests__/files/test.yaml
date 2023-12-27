@@ -1,4 +1,4 @@
-mandatoryAccounts: []
+mandatoryAccounts: [ ]
 workloadAccounts:
   - name: TestAccount
     description: The Test Account

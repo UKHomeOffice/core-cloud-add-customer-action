@@ -4,7 +4,7 @@
 
 import { loadAccounts } from '../src/parser'
 import { expect } from '@jest/globals'
-import {AccountDoc, WorkloadAccount} from "../src/types";
+import { AccountDoc } from '../src/types'
 
 describe('parser.ts', () => {
   it('parses workload accounts successfully with on present', async () => {
@@ -20,11 +20,15 @@ describe('parser.ts', () => {
     expect(accounts.workloadAccounts.length).toBe(0)
   })
 
-  it('returns an empty array when no workload accounts are present', async () => {
-    expect(() => { loadAccounts('./__tests__/files/invalid.yaml') }).toThrowError()
+  it('thows an error if an invalid file is provided', async () => {
+    expect(() => {
+      loadAccounts('./__tests__/files/invalid.yaml')
+    }).toThrow()
   })
 
   it('throws an error if the file cannot be found', async () => {
-    expect(() => { loadAccounts('./__tests__/files/_.yaml') }).toThrowError()
+    expect(() => {
+      loadAccounts('./__tests__/files/_.yaml')
+    }).toThrow()
   })
 })

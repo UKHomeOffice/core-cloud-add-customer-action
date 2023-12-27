@@ -14,22 +14,18 @@ const runMock = jest.spyOn(main, 'run')
 
 // Mock the GitHub Actions core library
 let infoMock: jest.SpyInstance
-let debugMock: jest.SpyInstance
 let errorMock: jest.SpyInstance
 let getInputMock: jest.SpyInstance
 let setFailedMock: jest.SpyInstance
-let setOutputMock: jest.SpyInstance
 
 describe('action', () => {
   beforeEach(() => {
     jest.clearAllMocks()
 
     infoMock = jest.spyOn(core, 'info').mockImplementation()
-    debugMock = jest.spyOn(core, 'debug').mockImplementation()
     errorMock = jest.spyOn(core, 'error').mockImplementation()
     getInputMock = jest.spyOn(core, 'getInput').mockImplementation()
     setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation()
-    setOutputMock = jest.spyOn(core, 'setOutput').mockImplementation()
   })
 
   it('adds three new accounts', async () => {
@@ -52,11 +48,15 @@ describe('action', () => {
     await main.run()
     expect(runMock).toHaveReturned()
 
-    expect(infoMock).toHaveBeenNthCalledWith(1,
-        `0 workload accounts loaded from file './__tests__/files/empty.yaml'`)
+    expect(infoMock).toHaveBeenNthCalledWith(
+      1,
+      `0 workload accounts loaded from file './__tests__/files/empty.yaml'`
+    )
 
-    expect(infoMock).toHaveBeenNthCalledWith(2,
-        `3 workload accounts written to file './__tests__/files/empty.yaml'`)
+    expect(infoMock).toHaveBeenNthCalledWith(
+      2,
+      `3 workload accounts written to file './__tests__/files/empty.yaml'`
+    )
 
     expect(errorMock).not.toHaveBeenCalled()
   })
@@ -82,7 +82,8 @@ describe('action', () => {
     expect(runMock).toHaveReturned()
 
     expect(infoMock).toHaveBeenCalledWith(
-        `0 workload accounts loaded from file './__tests__/files/empty.yaml'`)
+      `0 workload accounts loaded from file './__tests__/files/empty.yaml'`
+    )
 
     expect(errorMock).not.toHaveBeenCalled()
   })
@@ -138,7 +139,7 @@ describe('action', () => {
     // Verify error message is propagated to setFailed()
 
     expect(setFailedMock).toHaveBeenCalledWith(
-        `Error parsing workload accounts from file './__tests__/files/invalid.yaml', accounts section is null or undefined`
+      `Error parsing workload accounts from file './__tests__/files/invalid.yaml', accounts section is null or undefined`
     )
 
     expect(errorMock).not.toHaveBeenCalled()

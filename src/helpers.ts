@@ -1,50 +1,55 @@
-import {
-    ActionInput,
-    ActionInputParam, DeploymentEnvironment
-} from './types';
-import * as core from '@actions/core';
+import { ActionInput, ActionInputParam, DeploymentEnvironment } from './types'
+import * as core from '@actions/core'
 
-export const getActionInputs = (variables: Array<ActionInputParam>): ActionInput => {
-    return <ActionInput>variables.reduce((obj, variable) => {
-        let value: string | undefined = core.getInput(variable.name, variable.options);
-        if (!value) {
-            if (Object.hasOwn(variable, 'default')) {
-                value = variable.default;
-            }
-        }
-        return Object.assign(obj, { [variable.name]: value } );
-    }, {});
-};
-
-export const getOrganisationalUnits = (labels: string) : DeploymentEnvironment[] => {
-    if (labels === undefined || labels === "") {
-        return [];
+export const getActionInputs = (variables: ActionInputParam[]): ActionInput => {
+  return variables.reduce((obj, variable) => {
+    let value: string | undefined = core.getInput(
+      variable.name,
+      variable.options
+    )
+    if (!value) {
+      if (Object.hasOwn(variable, 'default')) {
+        value = variable.default
+      }
     }
+    return Object.assign(obj, { [variable.name]: value })
+  }, {}) as ActionInput
+}
 
-    const environmentStrings = labels.split(",");
+export const getOrganisationalUnits = (
+  labels: string
+): DeploymentEnvironment[] => {
+  if (labels === undefined || labels === '') {
+    return []
+  }
 
-    const environmentArray: DeploymentEnvironment[] = [];
+  const environmentStrings = labels.split(',')
 
-    for (const environmentString of environmentStrings) {
-        const environmentEnumValue: DeploymentEnvironment | undefined = DeploymentEnvironment[environmentString.toLowerCase() as keyof typeof DeploymentEnvironment];
+  const environmentArray: DeploymentEnvironment[] = []
 
-        if (environmentEnumValue !== undefined) {
-            environmentArray.push(environmentEnumValue);
-        } else {
-            core.warning(`Invalid environment string: ${environmentString}`);
-        }
+  for (const environmentString of environmentStrings) {
+    const environmentEnumValue: DeploymentEnvironment | undefined =
+      DeploymentEnvironment[
+        environmentString.toLowerCase() as keyof typeof DeploymentEnvironment
+      ]
+
+    if (environmentEnumValue !== undefined) {
+      environmentArray.push(environmentEnumValue)
+    } else {
+      core.warning(`Invalid environment string: ${environmentString}`)
     }
+  }
 
-    return environmentArray;
+  return environmentArray
 }
 
 export const toSentenceCase = (input: string): string => {
-    if (!input) {
-        return input; // Return unchanged if input is empty or null
-    }
+  if (!input) {
+    return input // Return unchanged if input is empty or null
+  }
 
-    const firstLetter = input.charAt(0).toUpperCase();
-    const restOfString = input.slice(1).toLowerCase();
+  const firstLetter = input.charAt(0).toUpperCase()
+  const restOfString = input.slice(1).toLowerCase()
 
-    return firstLetter + restOfString;
+  return firstLetter + restOfString
 }
