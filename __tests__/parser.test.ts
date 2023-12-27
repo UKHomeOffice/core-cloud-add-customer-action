@@ -7,8 +7,8 @@ import { expect } from '@jest/globals'
 import { AccountDoc } from '../src/types'
 
 describe('parser.ts', () => {
-  it('parses workload accounts successfully with on present', async () => {
-    const accounts: AccountDoc = loadAccounts('./__tests__/files/test.yaml')
+  it('parses workload accounts successfully with one present', async () => {
+    const accounts: AccountDoc = loadAccounts('./__tests__/files/valid.yaml')
     expect(accounts).toBeDefined()
     expect(accounts.workloadAccounts).toBeDefined()
   })

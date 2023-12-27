@@ -8,6 +8,7 @@
 
 import * as core from '@actions/core'
 import * as main from '../src/main'
+import * as fs from 'fs'
 
 // Mock the action's main function
 const runMock = jest.spyOn(main, 'run')
@@ -19,6 +20,8 @@ let getInputMock: jest.SpyInstance
 let setFailedMock: jest.SpyInstance
 
 describe('action', () => {
+  const testFilePath = `./__tests__/files/test-${Date.now()}.yaml`
+
   beforeEach(() => {
     jest.clearAllMocks()
 
@@ -26,6 +29,13 @@ describe('action', () => {
     errorMock = jest.spyOn(core, 'error').mockImplementation()
     getInputMock = jest.spyOn(core, 'getInput').mockImplementation()
     setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation()
+
+    // copy the './__tests__/files/empty.yaml' for testing
+    fs.copyFileSync('./__tests__/files/empty.yaml', testFilePath)
+  })
+
+  afterEach(() => {
+    fs.unlinkSync(testFilePath)
   })
 
   it('adds three new accounts', async () => {
@@ -33,7 +43,7 @@ describe('action', () => {
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
         case 'file_path':
-          return './__tests__/files/empty.yaml'
+          return testFilePath
         case 'customer_id':
           return 'CUSTOMERID'
         case 'spoc_email':
@@ -50,39 +60,12 @@ describe('action', () => {
 
     expect(infoMock).toHaveBeenNthCalledWith(
       1,
-      `0 workload accounts loaded from file './__tests__/files/empty.yaml'`
+      `0 workload accounts loaded from file '${testFilePath}'`
     )
 
     expect(infoMock).toHaveBeenNthCalledWith(
       2,
-      `3 workload accounts written to file './__tests__/files/empty.yaml'`
-    )
-
-    expect(errorMock).not.toHaveBeenCalled()
-  })
-
-  it('runs with no existing accounts', async () => {
-    // Set the action's inputs as return values from core.getInput()
-    getInputMock.mockImplementation((name: string): string => {
-      switch (name) {
-        case 'file_path':
-          return './__tests__/files/empty.yaml'
-        case 'customer_id':
-          return 'CUSTOMERID'
-        case 'spoc_email':
-          return 'SPOC_EMAIL'
-        case 'organisational_units':
-          return 'Dev,Test,Prod'
-        default:
-          return ''
-      }
-    })
-
-    await main.run()
-    expect(runMock).toHaveReturned()
-
-    expect(infoMock).toHaveBeenCalledWith(
-      `0 workload accounts loaded from file './__tests__/files/empty.yaml'`
+      `3 workload accounts written to file '${testFilePath}'`
     )
 
     expect(errorMock).not.toHaveBeenCalled()
