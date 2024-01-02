@@ -2,7 +2,6 @@ name: 'core-cloud-add-customer-action'
 description: 'GitHub Action to add a customer to the Core Cloud LZA config'
 author: 'ukhomeoffice'
 
-# Define your inputs here.
 inputs:
   file_path:
     description: 'Relative path to the accounts-config.yaml file'
@@ -16,11 +15,6 @@ inputs:
   organisational_units:
     description: 'CSV list of OUs to create accounts under'
     required: true
-
-# Define your outputs here.
-outputs:
-  time:
-    description: 'Your output description here'
 
 runs:
   using: node20
