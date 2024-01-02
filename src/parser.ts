@@ -7,7 +7,7 @@ export const loadAccounts = (filePath: string): AccountDoc => {
   let accounts: AccountDoc
   try {
     accounts = parse(readFileSync(filePath, 'utf8'))
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw new Error(`Error reading workload accounts from file '${filePath}'`)
   }
 
@@ -32,7 +32,7 @@ export const writeAccounts = (
       `${accountDoc?.workloadAccounts?.length} workload accounts written to file '${filePath}'`
     )
     writeFileSync(filePath, stringify(accountDoc), 'utf8')
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw new Error(`Error writing workload accounts to file '${filePath}'`)
   }
 }
