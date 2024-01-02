@@ -4,6 +4,10 @@ GitHub Action to add a customer to the Core Cloud LZA config.
 
 ## Workflow Action
 
+### Inputs
+
+Action inputs can be found within the [action.yml](./action.yml) file.
+
 ### Generating dist/index.js
 
 We use [ncc](https://github.com/vercel/ncc) to package the action into an executable file.
