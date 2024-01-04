@@ -39,6 +39,8 @@ describe('action', () => {
   })
 
   it('adds three new accounts', async () => {
+    const expectedFilePath = './__tests__/files/expected.yaml'
+
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
@@ -56,17 +58,17 @@ describe('action', () => {
     })
 
     await main.run()
-    expect(runMock).toHaveReturned()
 
+    expect(runMock).toHaveReturned()
     expect(infoMock).toHaveBeenNthCalledWith(
       1,
       `0 workload accounts loaded from file '${testFilePath}'`
     )
-
     expect(infoMock).toHaveBeenNthCalledWith(
       2,
       `3 workload accounts written to file '${testFilePath}'`
     )
+    expect(compareTwoFiles(testFilePath, expectedFilePath)).toBe(true)
 
     expect(errorMock).not.toHaveBeenCalled()
   })
@@ -120,7 +122,6 @@ describe('action', () => {
     expect(runMock).toHaveReturned()
 
     // Verify error message is propagated to setFailed()
-
     expect(setFailedMock).toHaveBeenCalledWith(
       `Error parsing workload accounts from file './__tests__/files/invalid.yaml', accounts section is null or undefined`
     )
@@ -128,3 +129,7 @@ describe('action', () => {
     expect(errorMock).not.toHaveBeenCalled()
   })
 })
+
+const compareTwoFiles = (filePath1: string, filePath2: string): boolean => {
+  return fs.readFileSync(filePath1).equals(fs.readFileSync(filePath2))
+}
