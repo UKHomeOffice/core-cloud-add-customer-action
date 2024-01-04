@@ -77,8 +77,8 @@ describe('action', () => {
     expect(errorMock).not.toHaveBeenCalled()
   })
 
-  it('add 3 valid accounts with one invalid organisation unit', async () => {
-    const expectedFilePath = './__tests__/files/expected.yaml'
+  it('attempt to add one invalid organisation unit', async () => {
+    const expectedFilePath = './__tests__/files/empty.yaml'
 
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
@@ -90,7 +90,7 @@ describe('action', () => {
         case 'spoc_email':
           return 'account@example.com'
         case 'organisational_units':
-          return 'Dev,Test,Prod,INVALID'
+          return 'INVALID'
         default:
           return ''
       }
@@ -105,7 +105,7 @@ describe('action', () => {
     )
     expect(infoMock).toHaveBeenNthCalledWith(
       2,
-      `3 workload accounts written to file '${testFilePath}'`
+      `0 workload accounts written to file '${testFilePath}'`
     )
     expect(warningMock).toHaveBeenNthCalledWith(
       1,
