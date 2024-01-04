@@ -2756,12 +2756,7 @@ const types_1 = __nccwpck_require__(5077);
 const core = __importStar(__nccwpck_require__(2186));
 const getActionInputs = (variables) => {
     return variables.reduce((obj, variable) => {
-        let value = core.getInput(variable.name, variable.options);
-        if (!value) {
-            if (Object.hasOwn(variable, 'default')) {
-                value = variable.default;
-            }
-        }
+        const value = core.getInput(variable.name, variable.options);
         return Object.assign(obj, { [variable.name]: value });
     }, {});
 };

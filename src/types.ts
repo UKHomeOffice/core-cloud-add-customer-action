@@ -9,7 +9,6 @@ type ActionInputKey =
 export type ActionInputParam = {
   name: ActionInputKey
   options: { required: boolean }
-  default?: string
 }
 
 export type ActionInput = Record<ActionInputKey, string>
