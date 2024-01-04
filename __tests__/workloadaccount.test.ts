@@ -49,4 +49,13 @@ describe('types.ts', () => {
       `user+projectname-dev@example.com`
     )
   })
+  it('throws error when email prefix greater than 64 length', async () => {
+    const email = `${'x'.repeat(61)}@EXAMPLE.com`
+    const customerId = 'PROJECTNAME'
+    const orgUnitName = 'DEV'
+    // Result prefix is 65 characters, from {prefix}{+orgUnitName}
+    expect(() =>
+      WorkloadAccount.getEmail(email, customerId, orgUnitName)
+    ).toThrow()
+  })
 })

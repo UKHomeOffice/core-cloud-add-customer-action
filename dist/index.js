@@ -2955,7 +2955,11 @@ class WorkloadAccount {
     };
     static getEmail = (email, customerId, orgUnitName) => {
         const emailSplit = email.split('@');
-        return `${emailSplit[0]}+${customerId}-${orgUnitName}@${emailSplit[1]}`.toLowerCase();
+        const emailPrefix = `${emailSplit[0]}+${customerId}-${orgUnitName}`;
+        if (emailPrefix.length > 64) {
+            throw new Error(`Email prefix '${emailPrefix}' is too long, must be 64 characters or less`);
+        }
+        return `${emailPrefix}@${emailSplit[1]}`.toLowerCase();
     };
 }
 exports.WorkloadAccount = WorkloadAccount;
