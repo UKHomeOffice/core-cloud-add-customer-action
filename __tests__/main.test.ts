@@ -15,6 +15,7 @@ const runMock = jest.spyOn(main, 'run')
 
 // Mock the GitHub Actions core library
 let infoMock: jest.SpyInstance
+let warningMock: jest.SpyInstance
 let errorMock: jest.SpyInstance
 let getInputMock: jest.SpyInstance
 let setFailedMock: jest.SpyInstance
@@ -26,6 +27,7 @@ describe('action', () => {
     jest.clearAllMocks()
 
     infoMock = jest.spyOn(core, 'info').mockImplementation()
+    warningMock = jest.spyOn(core, 'warning').mockImplementation()
     errorMock = jest.spyOn(core, 'error').mockImplementation()
     getInputMock = jest.spyOn(core, 'getInput').mockImplementation()
     setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation()
@@ -73,7 +75,46 @@ describe('action', () => {
     expect(errorMock).not.toHaveBeenCalled()
   })
 
-  it('sets a failed status on missing file', async () => {
+  it('Attempt to add four accounts with one invalid organisation unit', async () => {
+    const expectedFilePath = './__tests__/files/expected.yaml'
+
+    // Set the action's inputs as return values from core.getInput()
+    getInputMock.mockImplementation((name: string): string => {
+      switch (name) {
+        case 'file_path':
+          return testFilePath
+        case 'customer_id':
+          return 'CUSTOMERID'
+        case 'spoc_email':
+          return 'account@example.com'
+        case 'organisational_units':
+          return 'Dev,Test,Prod,INVALID'
+        default:
+          return ''
+      }
+    })
+
+    await main.run()
+
+    expect(runMock).toHaveReturned()
+    expect(infoMock).toHaveBeenNthCalledWith(
+      1,
+      `0 workload accounts loaded from file '${testFilePath}'`
+    )
+    expect(infoMock).toHaveBeenNthCalledWith(
+      2,
+      `3 workload accounts written to file '${testFilePath}'`
+    )
+    expect(warningMock).toHaveBeenNthCalledWith(
+      1,
+      `Invalid environment string: INVALID`
+    )
+    expect(compareTwoFiles(testFilePath, expectedFilePath)).toBe(true)
+
+    expect(errorMock).not.toHaveBeenCalled()
+  })
+
+  it('sets a failed status on missing input file', async () => {
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
@@ -101,7 +142,7 @@ describe('action', () => {
     expect(errorMock).not.toHaveBeenCalled()
   })
 
-  it('sets a failed status on invalid file', async () => {
+  it('sets a failed status on invalid input file', async () => {
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
