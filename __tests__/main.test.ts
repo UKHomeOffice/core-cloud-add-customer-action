@@ -9,6 +9,7 @@
 import * as core from '@actions/core'
 import * as main from '../src/main'
 import * as fs from 'fs'
+import { compareTwoFiles } from './utils'
 
 // Mock the action's main function
 const runMock = jest.spyOn(main, 'run')
@@ -21,7 +22,7 @@ let getInputMock: jest.SpyInstance
 let setFailedMock: jest.SpyInstance
 
 describe('action', () => {
-  const testFilePath = `./__tests__/files/test-${Date.now()}.yaml`
+  let testFilePath: string
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -33,6 +34,7 @@ describe('action', () => {
     setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation()
 
     // copy the './__tests__/files/empty.yaml' for testing
+    testFilePath = `./__tests__/files/test-${Date.now()}.yaml`
     fs.copyFileSync('./__tests__/files/empty.yaml', testFilePath)
   })
 
@@ -75,7 +77,7 @@ describe('action', () => {
     expect(errorMock).not.toHaveBeenCalled()
   })
 
-  it('Attempt to add four accounts with one invalid organisation unit', async () => {
+  it('add 3 valid accounts with one invalid organisation unit', async () => {
     const expectedFilePath = './__tests__/files/expected.yaml'
 
     // Set the action's inputs as return values from core.getInput()
@@ -170,7 +172,3 @@ describe('action', () => {
     expect(errorMock).not.toHaveBeenCalled()
   })
 })
-
-const compareTwoFiles = (filePath1: string, filePath2: string): boolean => {
-  return fs.readFileSync(filePath1).equals(fs.readFileSync(filePath2))
-}

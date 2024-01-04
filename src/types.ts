@@ -69,3 +69,12 @@ export class WorkloadAccount {
 export type AccountDoc = {
   workloadAccounts: WorkloadAccount[]
 }
+
+export type Account = {
+  addWorkloadAccount: (
+    customerId: string,
+    email: string,
+    organisationUnit: string
+  ) => void
+  writeAccounts: () => void
+}

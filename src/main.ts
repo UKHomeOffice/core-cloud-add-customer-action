@@ -1,6 +1,6 @@
 import { getActionInputs, getOrganisationalUnits } from './helpers'
-import { ActionInput, WorkloadAccount } from './types'
-import { loadAccounts, writeAccounts } from './parser'
+import { ActionInput } from './types'
+import { loadAccounts } from './parser'
 import * as core from '@actions/core'
 
 /**
@@ -9,7 +9,6 @@ import * as core from '@actions/core'
  */
 export async function run(): Promise<void> {
   try {
-    // Get the GH token and version file path
     const inputs: ActionInput = getActionInputs([
       { name: 'file_path', options: { required: true } },
       { name: 'customer_id', options: { required: true } },
@@ -22,21 +21,14 @@ export async function run(): Promise<void> {
     for (const orgUnitName of getOrganisationalUnits(
       inputs.organisational_units
     )) {
-      accountDoc.workloadAccounts.push(
-        new WorkloadAccount(
-          WorkloadAccount.getCustomerName(inputs.customer_id, orgUnitName),
-          WorkloadAccount.getDescription(inputs.customer_id, orgUnitName),
-          WorkloadAccount.getEmail(
-            inputs.spoc_email,
-            inputs.customer_id,
-            orgUnitName
-          ),
-          orgUnitName
-        )
+      accountDoc.addWorkloadAccount(
+        inputs.customer_id,
+        inputs.spoc_email,
+        orgUnitName
       )
     }
 
-    writeAccounts(inputs.file_path, accountDoc)
+    accountDoc.writeAccounts()
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }

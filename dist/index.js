@@ -2823,7 +2823,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const helpers_1 = __nccwpck_require__(3015);
-const types_1 = __nccwpck_require__(5077);
 const parser_1 = __nccwpck_require__(8412);
 const core = __importStar(__nccwpck_require__(2186));
 /**
@@ -2832,7 +2831,6 @@ const core = __importStar(__nccwpck_require__(2186));
  */
 async function run() {
     try {
-        // Get the GH token and version file path
         const inputs = (0, helpers_1.getActionInputs)([
             { name: 'file_path', options: { required: true } },
             { name: 'customer_id', options: { required: true } },
@@ -2841,9 +2839,9 @@ async function run() {
         ]);
         const accountDoc = (0, parser_1.loadAccounts)(inputs.file_path);
         for (const orgUnitName of (0, helpers_1.getOrganisationalUnits)(inputs.organisational_units)) {
-            accountDoc.workloadAccounts.push(new types_1.WorkloadAccount(types_1.WorkloadAccount.getCustomerName(inputs.customer_id, orgUnitName), types_1.WorkloadAccount.getDescription(inputs.customer_id, orgUnitName), types_1.WorkloadAccount.getEmail(inputs.spoc_email, inputs.customer_id, orgUnitName), orgUnitName));
+            accountDoc.addWorkloadAccount(inputs.customer_id, inputs.spoc_email, orgUnitName);
         }
-        (0, parser_1.writeAccounts)(inputs.file_path, accountDoc);
+        accountDoc.writeAccounts();
     }
     catch (error) {
         if (error instanceof Error)
@@ -2884,7 +2882,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.writeAccounts = exports.loadAccounts = void 0;
+exports.loadAccounts = void 0;
+const types_1 = __nccwpck_require__(5077);
 const yaml_1 = __nccwpck_require__(4083);
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
@@ -2899,20 +2898,28 @@ const loadAccounts = (filePath) => {
     if (accounts === null || accounts === undefined) {
         throw new Error(`Error parsing workload accounts from file '${filePath}', accounts section is null or undefined`);
     }
-    core.info(`${accounts?.workloadAccounts?.length} workload accounts loaded from file '${filePath}'`);
-    return accounts;
+    core.info(`${accounts.workloadAccounts?.length} workload accounts loaded from file '${filePath}'`);
+    return {
+        addWorkloadAccount: (customerId, email, organisationUnit) => {
+            const workloadEmail = types_1.WorkloadAccount.getEmail(email, customerId, organisationUnit);
+            const conflictingAccount = accounts.workloadAccounts?.find(account => account.email === workloadEmail);
+            if (conflictingAccount) {
+                throw new Error(`Email already exists within file ${filePath}: ${conflictingAccount}`);
+            }
+            accounts.workloadAccounts.push(new types_1.WorkloadAccount(types_1.WorkloadAccount.getCustomerName(customerId, organisationUnit), types_1.WorkloadAccount.getDescription(customerId, organisationUnit), workloadEmail, organisationUnit));
+        },
+        writeAccounts: () => {
+            try {
+                core.info(`${accounts.workloadAccounts?.length} workload accounts written to file '${filePath}'`);
+                (0, fs_1.writeFileSync)(filePath, (0, yaml_1.stringify)(accounts), 'utf8');
+            }
+            catch (error) {
+                throw new Error(`Error writing workload accounts to file '${filePath}'`);
+            }
+        }
+    };
 };
 exports.loadAccounts = loadAccounts;
-const writeAccounts = (filePath, accountDoc) => {
-    try {
-        core.info(`${accountDoc?.workloadAccounts?.length} workload accounts written to file '${filePath}'`);
-        (0, fs_1.writeFileSync)(filePath, (0, yaml_1.stringify)(accountDoc), 'utf8');
-    }
-    catch (error) {
-        throw new Error(`Error writing workload accounts to file '${filePath}'`);
-    }
-};
-exports.writeAccounts = writeAccounts;
 
 
 /***/ }),
