@@ -2766,17 +2766,17 @@ const getOrganisationalUnits = (labels) => {
         return [];
     }
     const environmentStrings = labels.split(',');
-    const environmentArray = [];
+    const environmentSet = new Set();
     for (const environmentString of environmentStrings) {
         const environmentEnumValue = types_1.DeploymentEnvironment[environmentString.toLowerCase()];
         if (environmentEnumValue !== undefined) {
-            environmentArray.push(environmentEnumValue);
+            environmentSet.add(environmentEnumValue);
         }
         else {
             core.warning(`Invalid environment string: ${environmentString}`);
         }
     }
-    return environmentArray;
+    return [...environmentSet];
 };
 exports.getOrganisationalUnits = getOrganisationalUnits;
 const toSentenceCase = (input) => {

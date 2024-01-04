@@ -20,7 +20,7 @@ export const getOrganisationalUnits = (
 
   const environmentStrings = labels.split(',')
 
-  const environmentArray: DeploymentEnvironment[] = []
+  const environmentSet = new Set<DeploymentEnvironment>()
 
   for (const environmentString of environmentStrings) {
     const environmentEnumValue: DeploymentEnvironment | undefined =
@@ -29,13 +29,13 @@ export const getOrganisationalUnits = (
       ]
 
     if (environmentEnumValue !== undefined) {
-      environmentArray.push(environmentEnumValue)
+      environmentSet.add(environmentEnumValue)
     } else {
       core.warning(`Invalid environment string: ${environmentString}`)
     }
   }
 
-  return environmentArray
+  return [...environmentSet]
 }
 
 export const toSentenceCase = (input: string): string => {
