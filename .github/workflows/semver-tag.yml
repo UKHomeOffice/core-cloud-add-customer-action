@@ -4,5 +4,6 @@ on:
     types: [ closed ]
 
 jobs:
-  tag:
+  semver-tag-repository:
+    name: Semver Tag Repository
     uses: UKHomeOffice/sas-github-workflows/.github/workflows/semver-tag.yml@v2

@@ -4,5 +4,6 @@ on:
     types: [ labeled, unlabeled, opened, reopened, synchronize ]
 
 jobs:
-  check:
+  semver-check-pr-label:
+    name: Semver Check PR Label
     uses: UKHomeOffice/sas-github-workflows/.github/workflows/semver-check.yml@v2
