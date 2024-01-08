@@ -53,7 +53,7 @@ describe('types.ts', () => {
     const email = `${'x'.repeat(61)}@EXAMPLE.com`
     const customerId = 'PROJECTNAME'
     const orgUnitName = 'DEV'
-    // Result prefix is 65 characters, from {prefix}{+orgUnitName}
+    // Result prefix is 65 characters, from {prefix}{+customerId-orgUnitName}
     expect(() =>
       WorkloadAccount.getEmail(email, customerId, orgUnitName)
     ).toThrow()
