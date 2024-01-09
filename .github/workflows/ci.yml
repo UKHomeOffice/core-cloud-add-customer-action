@@ -46,6 +46,9 @@ jobs:
     name: GitHub Actions Test
     runs-on: ubuntu-latest
 
+    env:
+      FILE_PATH: __tests__/files/empty.yaml
+
     steps:
       - name: Checkout
         id: checkout
@@ -55,8 +58,10 @@ jobs:
         id: test-action
         uses: ./
         with:
-          milliseconds: 2000
+          file_path: ${{ env.FILE_PATH }}
+          customer_id: test
+          spoc_email: test@example.com
+          organisational_units: test
 
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+      - name: Check diff output
+        run:  git diff --name-only ${{ env.FILE_PATH }} | grep ${{ env.FILE_PATH }} || exit 1

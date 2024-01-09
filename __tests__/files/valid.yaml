@@ -1,0 +1,6 @@
+mandatoryAccounts: []
+workloadAccounts:
+  - name: AccountTest
+    description: The Account Test Account
+    email: user+account-test@example.com
+    organizationalUnit: Test
