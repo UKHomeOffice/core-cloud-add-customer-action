@@ -10,8 +10,8 @@ Action inputs can be found within the [action.yml](./action.yml) file.
 
 ### Generating dist/index.js
 
-We use [ncc](https://github.com/vercel/ncc) to package the action into an 
-executable file. This removes the need to either check in the node_modules 
+We use [ncc](https://github.com/vercel/ncc) to package the action into an
+executable file. This removes the need to either check in the node_modules
 folder or build the action prior to using.
 
 We need to ensure that the dist folder is updated whenever there is a
@@ -28,4 +28,4 @@ and on pull request events.
 ## Licence
 
 This project is licensed under the MIT License - see the [LICENCE](./LICENCE)
-file for details. 
+file for details.
