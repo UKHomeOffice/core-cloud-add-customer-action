@@ -1,7 +1,7 @@
-import { getActionInputs, getOrganisationalUnits } from './helpers'
+import { getActionInputs } from './helpers'
 import { ActionInput } from './types'
-import { loadAccounts } from './parser'
 import * as core from '@actions/core'
+import { WorkloadAccounts } from './workloadaccounts'
 
 /**
  * The main function for the action.
@@ -11,19 +11,10 @@ export async function run(): Promise<void> {
   try {
     const inputs: ActionInput = getActionInputs()
 
-    const accountDoc = loadAccounts(inputs.file_path)
-
-    for (const orgUnitName of getOrganisationalUnits(
-      inputs.organisational_units
-    )) {
-      accountDoc.addWorkloadAccount(
-        inputs.customer_id,
-        inputs.spoc_email,
-        orgUnitName
-      )
-    }
-
-    accountDoc.writeAccounts()
+    WorkloadAccounts(inputs.file_path, inputs.organisational_units).addAccounts(
+      inputs.customer_id,
+      inputs.spoc_email
+    )
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }

@@ -1,4 +1,4 @@
-import {capitaliseFirstLetter, toSentenceCase} from './helpers'
+import { capitaliseFirstLetter, toSentenceCase } from './helpers'
 
 type ActionInputKey =
   | 'file_path'
@@ -70,11 +70,6 @@ export type AccountDoc = {
   workloadAccounts: WorkloadAccount[]
 }
 
-export type Account = {
-  addWorkloadAccount: (
-    customerId: string,
-    email: string,
-    organisationUnit: string
-  ) => void
-  writeAccounts: () => void
+export type WorkloadAccountAction = {
+  addAccounts(customer_id: string, spoc_email: string): void
 }
