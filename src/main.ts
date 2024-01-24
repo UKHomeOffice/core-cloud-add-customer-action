@@ -9,12 +9,7 @@ import * as core from '@actions/core'
  */
 export async function run(): Promise<void> {
   try {
-    const inputs: ActionInput = getActionInputs([
-      { name: 'file_path', options: { required: true } },
-      { name: 'customer_id', options: { required: true } },
-      { name: 'spoc_email', options: { required: true } },
-      { name: 'organisational_units', options: { required: true } }
-    ])
+    const inputs: ActionInput = getActionInputs()
 
     const accountDoc = loadAccounts(inputs.file_path)
 
