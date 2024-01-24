@@ -55,3 +55,14 @@ export const toSentenceCase = (input: string): string => {
 
   return firstLetter + restOfString
 }
+
+export const capitaliseFirstLetter = (input: string): string => {
+  if (!input) {
+    return input // Return unchanged if input is empty or null
+  }
+
+  const firstLetter = input.charAt(0).toUpperCase()
+  const restOfString = input.slice(1)
+
+  return firstLetter + restOfString
+}

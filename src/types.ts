@@ -1,4 +1,4 @@
-import { toSentenceCase } from './helpers'
+import {capitaliseFirstLetter, toSentenceCase} from './helpers'
 
 type ActionInputKey =
   | 'file_path'
@@ -41,7 +41,7 @@ export class WorkloadAccount {
     customerId: string,
     orgUnitName: string
   ): string => {
-    return `${toSentenceCase(customerId)}${toSentenceCase(orgUnitName)}`
+    return `${capitaliseFirstLetter(customerId)}${toSentenceCase(orgUnitName)}`
   }
 
   static getDescription = (customerId: string, orgUnitName: string): string => {

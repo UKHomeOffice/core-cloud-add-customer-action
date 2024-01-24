@@ -16,7 +16,7 @@ describe('types.ts', () => {
     const customerId = 'PROJECTNAME'
     const orgUnitName = 'DEV'
     expect(WorkloadAccount.getCustomerName(customerId, orgUnitName)).toBe(
-      'ProjectnameDev'
+      'PROJECTNAMEDev'
     )
   })
   it('creates WorkloadAccount description correctly lower', async () => {
