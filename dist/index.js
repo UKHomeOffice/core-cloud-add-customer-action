@@ -2751,10 +2751,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.toSentenceCase = exports.getOrganisationalUnits = exports.getActionInputs = void 0;
+exports.capitaliseFirstLetter = exports.toSentenceCase = exports.getOrganisationalUnits = exports.getActionInputs = void 0;
 const types_1 = __nccwpck_require__(5077);
 const core = __importStar(__nccwpck_require__(2186));
-const getActionInputs = (variables) => {
+const getActionInputs = () => {
+    const variables = [
+        { name: 'file_path', options: { required: true } },
+        { name: 'customer_id', options: { required: true } },
+        { name: 'spoc_email', options: { required: true } },
+        { name: 'organisational_units', options: { required: true } }
+    ];
     return variables.reduce((obj, variable) => {
         const value = core.getInput(variable.name, variable.options);
         return Object.assign(obj, { [variable.name]: value });
@@ -2788,6 +2794,15 @@ const toSentenceCase = (input) => {
     return firstLetter + restOfString;
 };
 exports.toSentenceCase = toSentenceCase;
+const capitaliseFirstLetter = (input) => {
+    if (!input) {
+        return input; // Return unchanged if input is empty or null
+    }
+    const firstLetter = input.charAt(0).toUpperCase();
+    const restOfString = input.slice(1);
+    return firstLetter + restOfString;
+};
+exports.capitaliseFirstLetter = capitaliseFirstLetter;
 
 
 /***/ }),
@@ -2823,25 +2838,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const helpers_1 = __nccwpck_require__(3015);
-const parser_1 = __nccwpck_require__(8412);
 const core = __importStar(__nccwpck_require__(2186));
+const workloadaccounts_1 = __nccwpck_require__(5033);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 async function run() {
     try {
-        const inputs = (0, helpers_1.getActionInputs)([
-            { name: 'file_path', options: { required: true } },
-            { name: 'customer_id', options: { required: true } },
-            { name: 'spoc_email', options: { required: true } },
-            { name: 'organisational_units', options: { required: true } }
-        ]);
-        const accountDoc = (0, parser_1.loadAccounts)(inputs.file_path);
-        for (const orgUnitName of (0, helpers_1.getOrganisationalUnits)(inputs.organisational_units)) {
-            accountDoc.addWorkloadAccount(inputs.customer_id, inputs.spoc_email, orgUnitName);
-        }
-        accountDoc.writeAccounts();
+        const inputs = (0, helpers_1.getActionInputs)();
+        (0, workloadaccounts_1.WorkloadAccounts)(inputs.file_path, inputs.organisational_units).addAccounts(inputs.customer_id, inputs.spoc_email);
     }
     catch (error) {
         if (error instanceof Error)
@@ -2849,77 +2855,6 @@ async function run() {
     }
 }
 exports.run = run;
-
-
-/***/ }),
-
-/***/ 8412:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.loadAccounts = void 0;
-const types_1 = __nccwpck_require__(5077);
-const yaml_1 = __nccwpck_require__(4083);
-const fs_1 = __nccwpck_require__(7147);
-const core = __importStar(__nccwpck_require__(2186));
-const loadAccounts = (filePath) => {
-    let accounts;
-    try {
-        accounts = (0, yaml_1.parse)((0, fs_1.readFileSync)(filePath, 'utf8'));
-    }
-    catch (error) {
-        throw new Error(`Error reading workload accounts from file '${filePath}'`);
-    }
-    if (accounts === null || accounts === undefined) {
-        throw new Error(`Error parsing workload accounts from file '${filePath}', accounts section is null or undefined`);
-    }
-    core.info(`${accounts.workloadAccounts?.length} workload accounts loaded from file '${filePath}'`);
-    return {
-        addWorkloadAccount: (customerId, email, organisationUnit) => {
-            const workloadEmail = types_1.WorkloadAccount.getEmail(email, customerId, organisationUnit);
-            const conflictingAccount = accounts.workloadAccounts?.find(account => account.email === workloadEmail);
-            if (conflictingAccount) {
-                throw new Error(`Email already exists within file ${filePath}: ${conflictingAccount}`);
-            }
-            accounts.workloadAccounts.push(new types_1.WorkloadAccount(types_1.WorkloadAccount.getCustomerName(customerId, organisationUnit), types_1.WorkloadAccount.getDescription(customerId, organisationUnit), workloadEmail, organisationUnit));
-        },
-        writeAccounts: () => {
-            try {
-                core.info(`${accounts.workloadAccounts?.length} workload accounts written to file '${filePath}'`);
-                (0, fs_1.writeFileSync)(filePath, (0, yaml_1.stringify)(accounts), 'utf8');
-            }
-            catch (error) {
-                throw new Error(`Error writing workload accounts to file '${filePath}'`);
-            }
-        }
-    };
-};
-exports.loadAccounts = loadAccounts;
 
 
 /***/ }),
@@ -2950,7 +2885,7 @@ class WorkloadAccount {
         this.organizationalUnit = orgUnit;
     }
     static getCustomerName = (customerId, orgUnitName) => {
-        return `${(0, helpers_1.toSentenceCase)(customerId)}${(0, helpers_1.toSentenceCase)(orgUnitName)}`;
+        return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}${(0, helpers_1.toSentenceCase)(orgUnitName)}`;
     };
     static getDescription = (customerId, orgUnitName) => {
         return `The ${(0, helpers_1.toSentenceCase)(customerId)} ${(0, helpers_1.toSentenceCase)(orgUnitName)} Account`;
@@ -2965,6 +2900,85 @@ class WorkloadAccount {
     };
 }
 exports.WorkloadAccount = WorkloadAccount;
+
+
+/***/ }),
+
+/***/ 5033:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.WorkloadAccounts = void 0;
+const helpers_1 = __nccwpck_require__(3015);
+const types_1 = __nccwpck_require__(5077);
+const yaml_1 = __nccwpck_require__(4083);
+const fs_1 = __nccwpck_require__(7147);
+const core = __importStar(__nccwpck_require__(2186));
+const WorkloadAccounts = (file_path, organisation_units) => {
+    const deploymentEnvironments = (0, helpers_1.getOrganisationalUnits)(organisation_units);
+    let accounts;
+    try {
+        accounts = (0, yaml_1.parse)((0, fs_1.readFileSync)(file_path, 'utf8'));
+    }
+    catch (error) {
+        throw new Error(`Error reading workload accounts from file '${file_path}'`);
+    }
+    if (accounts === null || accounts === undefined) {
+        throw new Error(`Error parsing workload accounts from file '${file_path}', accounts section is null or undefined`);
+    }
+    core.info(`${accounts.workloadAccounts?.length} workload accounts loaded from file '${file_path}'`);
+    const addWorkloadAccount = (customerId, email, organisationUnit) => {
+        const workloadEmail = types_1.WorkloadAccount.getEmail(email, customerId, organisationUnit);
+        const conflictingAccount = accounts.workloadAccounts?.find(account => account.email === workloadEmail);
+        if (conflictingAccount) {
+            throw new Error(`Email already exists within file ${file_path}: ${conflictingAccount}`);
+        }
+        accounts.workloadAccounts.push(new types_1.WorkloadAccount(types_1.WorkloadAccount.getCustomerName(customerId, organisationUnit), types_1.WorkloadAccount.getDescription(customerId, organisationUnit), workloadEmail, organisationUnit));
+    };
+    const writeAccounts = () => {
+        try {
+            core.info(`${accounts.workloadAccounts?.length} workload accounts written to file '${file_path}'`);
+            (0, fs_1.writeFileSync)(file_path, (0, yaml_1.stringify)(accounts), 'utf8');
+        }
+        catch (error) {
+            throw new Error(`Error writing workload accounts to file '${file_path}'`);
+        }
+    };
+    return {
+        addAccounts(customer_id, spoc_email) {
+            for (const orgUnitName of deploymentEnvironments) {
+                addWorkloadAccount(customer_id, spoc_email, orgUnitName);
+            }
+            writeAccounts();
+        }
+    };
+};
+exports.WorkloadAccounts = WorkloadAccounts;
 
 
 /***/ }),
