@@ -2867,22 +2867,20 @@ exports.run = run;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.WorkloadAccount = exports.DeploymentEnvironment = void 0;
 const helpers_1 = __nccwpck_require__(3015);
+const yaml_1 = __nccwpck_require__(4083);
 var DeploymentEnvironment;
 (function (DeploymentEnvironment) {
     DeploymentEnvironment["dev"] = "Dev";
     DeploymentEnvironment["test"] = "Test";
     DeploymentEnvironment["prod"] = "Prod";
 })(DeploymentEnvironment || (exports.DeploymentEnvironment = DeploymentEnvironment = {}));
-class WorkloadAccount {
-    name;
-    description;
-    email;
-    organizationalUnit;
+class WorkloadAccount extends yaml_1.YAMLMap {
     constructor(name, description, email, orgUnit) {
-        this.name = name;
-        this.description = description;
-        this.email = email;
-        this.organizationalUnit = orgUnit;
+        super();
+        this.set('name', name);
+        this.set('description', description);
+        this.set('email', email);
+        this.set('organizationalUnit', orgUnit);
     }
     static getCustomerName = (customerId, orgUnitName) => {
         return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}${(0, helpers_1.toSentenceCase)(orgUnitName)}`;
@@ -2941,29 +2939,32 @@ const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
 const WorkloadAccounts = (file_path, organisation_units) => {
     const deploymentEnvironments = (0, helpers_1.getOrganisationalUnits)(organisation_units);
-    let accounts;
+    let fileParsed;
     try {
-        accounts = (0, yaml_1.parse)((0, fs_1.readFileSync)(file_path, 'utf8'));
+        fileParsed = (0, yaml_1.parseDocument)((0, fs_1.readFileSync)(file_path, 'utf8'));
     }
     catch (error) {
         throw new Error(`Error reading workload accounts from file '${file_path}'`);
     }
-    if (accounts === null || accounts === undefined) {
+    const workloadAccounts = fileParsed.get('workloadAccounts');
+    if (!workloadAccounts) {
         throw new Error(`Error parsing workload accounts from file '${file_path}', accounts section is null or undefined`);
     }
-    core.info(`${accounts.workloadAccounts?.length} workload accounts loaded from file '${file_path}'`);
+    core.info(`${workloadAccounts.items?.length} workload accounts loaded from file '${file_path}'`);
     const addWorkloadAccount = (customerId, email, organisationUnit) => {
         const workloadEmail = types_1.WorkloadAccount.getEmail(email, customerId, organisationUnit);
-        const conflictingAccount = accounts.workloadAccounts?.find(account => account.email === workloadEmail);
+        const conflictingAccount = workloadAccounts.items.find(account => account.get('email') === workloadEmail);
         if (conflictingAccount) {
-            throw new Error(`Email already exists within file ${file_path}: ${conflictingAccount}`);
+            throw new Error(`Email already exists within file ${file_path}: ${conflictingAccount.toString()}`);
         }
-        accounts.workloadAccounts.push(new types_1.WorkloadAccount(types_1.WorkloadAccount.getCustomerName(customerId, organisationUnit), types_1.WorkloadAccount.getDescription(customerId, organisationUnit), workloadEmail, organisationUnit));
+        workloadAccounts.items.push(new types_1.WorkloadAccount(types_1.WorkloadAccount.getCustomerName(customerId, organisationUnit), types_1.WorkloadAccount.getDescription(customerId, organisationUnit), workloadEmail, organisationUnit));
+        // This ensures that the array is mapped correctly if initially empty.
+        workloadAccounts.flow = false;
     };
     const writeAccounts = () => {
         try {
-            core.info(`${accounts.workloadAccounts?.length} workload accounts written to file '${file_path}'`);
-            (0, fs_1.writeFileSync)(file_path, (0, yaml_1.stringify)(accounts), 'utf8');
+            core.info(`${workloadAccounts.items?.length} workload accounts written to file '${file_path}'`);
+            (0, fs_1.writeFileSync)(file_path, fileParsed.toString(), 'utf8');
         }
         catch (error) {
             throw new Error(`Error writing workload accounts to file '${file_path}'`);
