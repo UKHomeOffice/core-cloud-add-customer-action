@@ -1,4 +1,5 @@
 import { capitaliseFirstLetter, toSentenceCase } from './helpers'
+import {YAMLMap} from "yaml";
 
 type ActionInputKey =
   | 'file_path'
@@ -19,11 +20,7 @@ export enum DeploymentEnvironment {
   prod = 'Prod'
 }
 
-export class WorkloadAccount {
-  name: string
-  description: string
-  email: string
-  organizationalUnit: string
+export class WorkloadAccount extends YAMLMap<String, String> {
 
   constructor(
     name: string,
@@ -31,10 +28,11 @@ export class WorkloadAccount {
     email: string,
     orgUnit: string
   ) {
-    this.name = name
-    this.description = description
-    this.email = email
-    this.organizationalUnit = orgUnit
+    super()
+    this.set('name', name)
+    this.set('description', description)
+    this.set('email', email)
+    this.set('organizationalUnit', orgUnit)
   }
 
   static getCustomerName = (
@@ -64,10 +62,6 @@ export class WorkloadAccount {
     }
     return `${emailPrefix}@${emailSplit[1]}`.toLowerCase()
   }
-}
-
-export type AccountDoc = {
-  workloadAccounts: WorkloadAccount[]
 }
 
 export type WorkloadAccountAction = {
