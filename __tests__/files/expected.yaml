@@ -1,14 +1,14 @@
 mandatoryAccounts: []
 workloadAccounts:
-  - name: CustomeridDev
+  - name: CUSTOMERIDDev
     description: The Customerid Dev Account
     email: account+customerid-dev@example.com
     organizationalUnit: Dev
-  - name: CustomeridTest
+  - name: CUSTOMERIDTest
     description: The Customerid Test Account
     email: account+customerid-test@example.com
     organizationalUnit: Test
-  - name: CustomeridProd
+  - name: CUSTOMERIDProd
     description: The Customerid Prod Account
     email: account+customerid-prod@example.com
     organizationalUnit: Prod

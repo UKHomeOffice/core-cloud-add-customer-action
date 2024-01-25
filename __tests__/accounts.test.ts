@@ -2,17 +2,17 @@
  * Unit tests for src/parser.ts
  */
 
-import { loadAccounts } from '../src/parser'
 import { expect } from '@jest/globals'
 
 import * as core from '@actions/core'
 import fs from 'fs'
 
 import { compareTwoFiles } from './utils'
+import { WorkloadAccounts } from '../src/workloadaccounts'
 
 let infoMock: jest.SpyInstance
 
-describe('parser.ts', () => {
+describe('accounts.test.ts', () => {
   let testFilePath: string
 
   beforeEach(() => {
@@ -25,14 +25,17 @@ describe('parser.ts', () => {
   })
 
   afterEach(() => {
-    fs.unlinkSync(testFilePath)
+    if (fs.existsSync(testFilePath)) {
+      fs.unlinkSync(testFilePath)
+    }
   })
 
   it('parses accounts successfully with one workload account present', async () => {
     const filePath = './__tests__/files/valid.yaml'
 
-    const accounts = loadAccounts(filePath)
-    expect(accounts).toBeDefined()
+    expect(() => {
+      WorkloadAccounts(filePath, 'Dev,Test,Prod')
+    }).not.toThrow()
 
     expect(infoMock).toHaveBeenCalledWith(
       `1 workload accounts loaded from file '${filePath}'`
@@ -42,8 +45,9 @@ describe('parser.ts', () => {
   it('parses accounts successfully with no workload account present', async () => {
     const filePath = './__tests__/files/empty.yaml'
 
-    const accounts = loadAccounts(filePath)
-    expect(accounts).toBeDefined()
+    expect(() => {
+      WorkloadAccounts(filePath, 'Dev,Test,Prod')
+    }).not.toThrow()
 
     expect(infoMock).toHaveBeenCalledWith(
       `0 workload accounts loaded from file '${filePath}'`
@@ -51,11 +55,12 @@ describe('parser.ts', () => {
   })
 
   it('successfully add new workload account', async () => {
-    const accounts = loadAccounts(testFilePath)
-    expect(accounts).toBeDefined()
-
-    accounts.addWorkloadAccount('Account', 'user@example.com', 'Test')
-    accounts.writeAccounts()
+    expect(() => {
+      WorkloadAccounts(testFilePath, 'Test').addAccounts(
+        'Account',
+        'user@example.com'
+      )
+    }).not.toThrow()
 
     expect(infoMock).toHaveBeenNthCalledWith(
       1,
@@ -72,20 +77,22 @@ describe('parser.ts', () => {
 
   it('throws an error if an invalid file is provided', async () => {
     expect(() => {
-      loadAccounts('./__tests__/files/invalid.yaml')
+      WorkloadAccounts('./__tests__/files/invalid.yaml', 'Test')
     }).toThrow()
   })
 
   it('throws an error if the file cannot be found', async () => {
     expect(() => {
-      loadAccounts('./__tests__/files/_.yaml')
+      WorkloadAccounts('./__tests__/files/_.yaml', 'Test')
     }).toThrow()
   })
 
   it('throws an error when account email already exists', async () => {
     expect(() => {
-      const accounts = loadAccounts('./__tests__/files/valid.yaml')
-      accounts.addWorkloadAccount('Account', 'user@example.com', 'Test')
+      WorkloadAccounts('./__tests__/files/valid.yaml', 'Test').addAccounts(
+        'Account',
+        'user@example.com'
+      )
     }).toThrow()
   })
 })
