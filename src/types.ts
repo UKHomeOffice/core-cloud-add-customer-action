@@ -1,5 +1,5 @@
 import { capitaliseFirstLetter, toSentenceCase } from './helpers'
-import {YAMLMap} from "yaml";
+import { YAMLMap } from 'yaml'
 
 type ActionInputKey =
   | 'file_path'
@@ -20,8 +20,7 @@ export enum DeploymentEnvironment {
   prod = 'Prod'
 }
 
-export class WorkloadAccount extends YAMLMap<String, String> {
-
+export class WorkloadAccount extends YAMLMap<string, string> {
   constructor(
     name: string,
     description: string,

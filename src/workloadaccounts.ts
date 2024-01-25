@@ -11,7 +11,6 @@ export const WorkloadAccounts = (
   const deploymentEnvironments = getOrganisationalUnits(organisation_units)
 
   let fileParsed: Document.Parsed
-  let workloadAccounts: YAMLSeq<YAMLMap>
 
   try {
     fileParsed = parseDocument(readFileSync(file_path, 'utf8'))
@@ -19,9 +18,13 @@ export const WorkloadAccounts = (
     throw new Error(`Error reading workload accounts from file '${file_path}'`)
   }
 
-  workloadAccounts = fileParsed.get('workloadAccounts') as YAMLSeq<YAMLMap>
+  const workloadAccounts: YAMLSeq<YAMLMap> = fileParsed.get(
+    'workloadAccounts'
+  ) as YAMLSeq<YAMLMap>
   if (!workloadAccounts) {
-    throw new Error(`Error parsing workload accounts from file '${file_path}', accounts section is null or undefined`)
+    throw new Error(
+      `Error parsing workload accounts from file '${file_path}', accounts section is null or undefined`
+    )
   }
 
   core.info(
@@ -40,7 +43,7 @@ export const WorkloadAccounts = (
     )
 
     const conflictingAccount = workloadAccounts.items.find(
-        account => account.get('email') === workloadEmail
+      account => account.get('email') === workloadEmail
     ) as WorkloadAccount | undefined
     if (conflictingAccount) {
       throw new Error(
@@ -58,7 +61,7 @@ export const WorkloadAccounts = (
     )
 
     // This ensures that the array is mapped correctly if initially empty.
-    workloadAccounts.flow = false;
+    workloadAccounts.flow = false
   }
 
   const writeAccounts = (): void => {
