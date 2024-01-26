@@ -1,6 +1,6 @@
 import { getOrganisationalUnits } from './helpers'
-import { AccountDoc, WorkloadAccount, WorkloadAccountAction } from './types'
-import { parse, stringify } from 'yaml'
+import { WorkloadAccount, WorkloadAccountAction } from './types'
+import { Document, parseDocument, YAMLMap, YAMLSeq } from 'yaml'
 import { readFileSync, writeFileSync } from 'fs'
 import * as core from '@actions/core'
 
@@ -9,22 +9,26 @@ export const WorkloadAccounts = (
   organisation_units: string
 ): WorkloadAccountAction => {
   const deploymentEnvironments = getOrganisationalUnits(organisation_units)
-  let accounts: AccountDoc
+
+  let fileParsed: Document.Parsed
 
   try {
-    accounts = parse(readFileSync(file_path, 'utf8'))
+    fileParsed = parseDocument(readFileSync(file_path, 'utf8'))
   } catch (error: unknown) {
     throw new Error(`Error reading workload accounts from file '${file_path}'`)
   }
 
-  if (accounts === null || accounts === undefined) {
+  const workloadAccounts: YAMLSeq<YAMLMap> = fileParsed.get(
+    'workloadAccounts'
+  ) as YAMLSeq<YAMLMap>
+  if (!workloadAccounts) {
     throw new Error(
       `Error parsing workload accounts from file '${file_path}', accounts section is null or undefined`
     )
   }
 
   core.info(
-    `${accounts.workloadAccounts?.length} workload accounts loaded from file '${file_path}'`
+    `${workloadAccounts.items?.length} workload accounts loaded from file '${file_path}'`
   )
 
   const addWorkloadAccount = (
@@ -38,16 +42,16 @@ export const WorkloadAccounts = (
       organisationUnit
     )
 
-    const conflictingAccount = accounts.workloadAccounts?.find(
-      account => account.email === workloadEmail
-    )
+    const conflictingAccount = workloadAccounts.items.find(
+      account => account.get('email') === workloadEmail
+    ) as WorkloadAccount | undefined
     if (conflictingAccount) {
       throw new Error(
-        `Email already exists within file ${file_path}: ${conflictingAccount}`
+        `Email already exists within file ${file_path}: ${conflictingAccount.toString()}`
       )
     }
 
-    accounts.workloadAccounts.push(
+    workloadAccounts.items.push(
       new WorkloadAccount(
         WorkloadAccount.getCustomerName(customerId, organisationUnit),
         WorkloadAccount.getDescription(customerId, organisationUnit),
@@ -55,14 +59,17 @@ export const WorkloadAccounts = (
         organisationUnit
       )
     )
+
+    // This ensures that the array is mapped correctly if initially empty.
+    workloadAccounts.flow = false
   }
 
   const writeAccounts = (): void => {
     try {
       core.info(
-        `${accounts.workloadAccounts?.length} workload accounts written to file '${file_path}'`
+        `${workloadAccounts.items?.length} workload accounts written to file '${file_path}'`
       )
-      writeFileSync(file_path, stringify(accounts), 'utf8')
+      writeFileSync(file_path, fileParsed.toString(), 'utf8')
     } catch (error: unknown) {
       throw new Error(`Error writing workload accounts to file '${file_path}'`)
     }

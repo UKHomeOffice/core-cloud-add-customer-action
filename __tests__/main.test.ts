@@ -39,7 +39,9 @@ describe('action', () => {
   })
 
   afterEach(() => {
-    fs.unlinkSync(testFilePath)
+    if (fs.existsSync(testFilePath)) {
+      fs.unlinkSync(testFilePath)
+    }
   })
 
   it('adds three new accounts', async () => {
