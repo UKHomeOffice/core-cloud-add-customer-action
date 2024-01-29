@@ -3,9 +3,9 @@ import { readFileSync, writeFileSync } from 'fs'
 import * as core from '@actions/core'
 import { WorkloadAccount } from './workloadaccounts'
 
-export const IdentityCenterAssignment = (
+export const IdentityCenterAssignments = (
   file_path: string
-): IdentityCentreAssignmentsAction => {
+): IdentityCenterAssignmentsAction => {
   let fileParsed: Document.Parsed
 
   try {
@@ -45,6 +45,6 @@ export const IdentityCenterAssignment = (
   }
 }
 
-export type IdentityCentreAssignmentsAction = {
+export type IdentityCenterAssignmentsAction = {
   addAssignments(customer_id: string, accounts: WorkloadAccount[]): void
 }

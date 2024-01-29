@@ -2837,11 +2837,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.IdentityCenterAssignment = void 0;
+exports.IdentityCenterAssignments = void 0;
 const yaml_1 = __nccwpck_require__(4083);
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
-const IdentityCenterAssignment = (file_path) => {
+const IdentityCenterAssignments = (file_path) => {
     let fileParsed;
     try {
         fileParsed = (0, yaml_1.parseDocument)((0, fs_1.readFileSync)(file_path, 'utf8'));
@@ -2869,7 +2869,7 @@ const IdentityCenterAssignment = (file_path) => {
         }
     };
 };
-exports.IdentityCenterAssignment = IdentityCenterAssignment;
+exports.IdentityCenterAssignments = IdentityCenterAssignments;
 
 
 /***/ }),
@@ -2916,7 +2916,7 @@ async function run() {
     try {
         const inputs = (0, helpers_1.getActionInputs)();
         const accounts = (0, workloadaccounts_1.WorkloadAccounts)(inputs.accounts_file_path, inputs.organisational_units).addAccounts(inputs.customer_id, inputs.spoc_email);
-        (0, identitycenterassignment_1.IdentityCenterAssignment)(inputs.iam_file_path).addAssignments(inputs.customer_id, accounts);
+        (0, identitycenterassignment_1.IdentityCenterAssignments)(inputs.iam_file_path).addAssignments(inputs.customer_id, accounts);
     }
     catch (error) {
         if (error instanceof Error)

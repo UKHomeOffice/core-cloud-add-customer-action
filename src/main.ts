@@ -2,7 +2,7 @@ import { getActionInputs } from './helpers'
 import { ActionInput } from './types'
 import * as core from '@actions/core'
 import { WorkloadAccounts } from './workloadaccounts'
-import { IdentityCenterAssignment } from './identitycenterassignment'
+import { IdentityCenterAssignments } from './identitycenterassignment'
 
 /**
  * The main function for the action.
@@ -17,7 +17,7 @@ export async function run(): Promise<void> {
       inputs.organisational_units
     ).addAccounts(inputs.customer_id, inputs.spoc_email)
 
-    IdentityCenterAssignment(inputs.iam_file_path).addAssignments(
+    IdentityCenterAssignments(inputs.iam_file_path).addAssignments(
       inputs.customer_id,
       accounts
     )
