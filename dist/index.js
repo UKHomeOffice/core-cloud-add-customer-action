@@ -2933,6 +2933,7 @@ const WorkloadAccounts = (file_path, organisation_units) => {
         workloadAccounts.items.push(workloadAccount);
         // This ensures that the array is mapped correctly if initially empty.
         workloadAccounts.flow = false;
+        return workloadAccount;
     };
     const writeAccounts = () => {
         try {
@@ -2945,10 +2946,11 @@ const WorkloadAccounts = (file_path, organisation_units) => {
     };
     return {
         addAccounts(customer_id, spoc_email) {
-            for (const orgUnitName of deploymentEnvironments) {
-                addWorkloadAccount(customer_id, spoc_email, orgUnitName);
-            }
+            const newWorkloadAccounts = deploymentEnvironments.map(orgUnitName => {
+                return addWorkloadAccount(customer_id, spoc_email, orgUnitName);
+            });
             writeAccounts();
+            return newWorkloadAccounts;
         }
     };
 };

@@ -38,7 +38,7 @@ export const WorkloadAccounts = (
     customerId: string,
     email: string,
     organisationUnit: string
-  ): void => {
+  ): WorkloadAccount => {
     const workloadAccount = new WorkloadAccount(
       customerId,
       email,
@@ -58,6 +58,8 @@ export const WorkloadAccounts = (
 
     // This ensures that the array is mapped correctly if initially empty.
     workloadAccounts.flow = false
+
+    return workloadAccount
   }
 
   const writeAccounts = (): void => {
@@ -72,11 +74,14 @@ export const WorkloadAccounts = (
   }
 
   return {
-    addAccounts(customer_id: string, spoc_email: string) {
-      for (const orgUnitName of deploymentEnvironments) {
-        addWorkloadAccount(customer_id, spoc_email, orgUnitName)
-      }
+    addAccounts(customer_id: string, spoc_email: string): WorkloadAccount[] {
+      const newWorkloadAccounts = deploymentEnvironments.map(orgUnitName => {
+        return addWorkloadAccount(customer_id, spoc_email, orgUnitName)
+      })
+
       writeAccounts()
+
+      return newWorkloadAccounts
     }
   }
 }
@@ -135,5 +140,5 @@ export class WorkloadAccount extends YAMLMap<string, string> {
 }
 
 export type WorkloadAccountAction = {
-  addAccounts(customer_id: string, spoc_email: string): void
+  addAccounts(customer_id: string, spoc_email: string): WorkloadAccount[]
 }
