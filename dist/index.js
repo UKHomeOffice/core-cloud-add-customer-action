@@ -2757,6 +2757,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const getActionInputs = () => {
     const variables = [
         { name: 'accounts_file_path', options: { required: true } },
+        { name: 'iam_file_path', options: { required: true } },
         { name: 'customer_id', options: { required: true } },
         { name: 'spoc_email', options: { required: true } },
         { name: 'organisational_units', options: { required: true } }
@@ -2807,6 +2808,72 @@ exports.capitaliseFirstLetter = capitaliseFirstLetter;
 
 /***/ }),
 
+/***/ 6064:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.IdentityCenterAssignment = void 0;
+const yaml_1 = __nccwpck_require__(4083);
+const fs_1 = __nccwpck_require__(7147);
+const core = __importStar(__nccwpck_require__(2186));
+const IdentityCenterAssignment = (file_path) => {
+    let fileParsed;
+    try {
+        fileParsed = (0, yaml_1.parseDocument)((0, fs_1.readFileSync)(file_path, 'utf8'));
+    }
+    catch (error) {
+        throw new Error(`Error reading assignments from file '${file_path}'`);
+    }
+    const identityCenterAssignments = fileParsed.get('identityCenterAssignments');
+    if (!identityCenterAssignments) {
+        throw new Error(`Error parsing assignments from file '${file_path}', section is null or undefined`);
+    }
+    core.info(`${identityCenterAssignments.items?.length} assignments loaded from file '${file_path}'`);
+    const writeAssignments = () => {
+        try {
+            core.info(`${identityCenterAssignments.items?.length} assignments written to file '${file_path}'`);
+            (0, fs_1.writeFileSync)(file_path, fileParsed.toString(), 'utf8');
+        }
+        catch (error) {
+            throw new Error(`Error writing assignments to file '${file_path}'`);
+        }
+    };
+    return {
+        addAssignments(customer_id, accounts) {
+            writeAssignments();
+        }
+    };
+};
+exports.IdentityCenterAssignment = IdentityCenterAssignment;
+
+
+/***/ }),
+
 /***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -2840,6 +2907,7 @@ exports.run = void 0;
 const helpers_1 = __nccwpck_require__(3015);
 const core = __importStar(__nccwpck_require__(2186));
 const workloadaccounts_1 = __nccwpck_require__(5033);
+const identitycenterassignment_1 = __nccwpck_require__(6064);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -2847,7 +2915,8 @@ const workloadaccounts_1 = __nccwpck_require__(5033);
 async function run() {
     try {
         const inputs = (0, helpers_1.getActionInputs)();
-        (0, workloadaccounts_1.WorkloadAccounts)(inputs.accounts_file_path, inputs.organisational_units).addAccounts(inputs.customer_id, inputs.spoc_email);
+        const accounts = (0, workloadaccounts_1.WorkloadAccounts)(inputs.accounts_file_path, inputs.organisational_units).addAccounts(inputs.customer_id, inputs.spoc_email);
+        (0, identitycenterassignment_1.IdentityCenterAssignment)(inputs.iam_file_path).addAssignments(inputs.customer_id, accounts);
     }
     catch (error) {
         if (error instanceof Error)

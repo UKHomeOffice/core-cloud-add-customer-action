@@ -1,6 +1,7 @@
 import { Document, parseDocument, YAMLMap, YAMLSeq } from 'yaml'
-import { readFileSync } from 'fs'
+import { readFileSync, writeFileSync } from 'fs'
 import * as core from '@actions/core'
+import { WorkloadAccount } from './workloadaccounts'
 
 export const IdentityCenterAssignment = (
   file_path: string
@@ -25,6 +26,25 @@ export const IdentityCenterAssignment = (
   core.info(
     `${identityCenterAssignments.items?.length} assignments loaded from file '${file_path}'`
   )
+
+  const writeAssignments = (): void => {
+    try {
+      core.info(
+        `${identityCenterAssignments.items?.length} assignments written to file '${file_path}'`
+      )
+      writeFileSync(file_path, fileParsed.toString(), 'utf8')
+    } catch (error: unknown) {
+      throw new Error(`Error writing assignments to file '${file_path}'`)
+    }
+  }
+
+  return {
+    addAssignments(customer_id: string, accounts: WorkloadAccount[]) {
+      writeAssignments()
+    }
+  }
 }
 
-export type IdentityCentreAssignmentsAction = void
+export type IdentityCentreAssignmentsAction = {
+  addAssignments(customer_id: string, accounts: WorkloadAccount[]): void
+}

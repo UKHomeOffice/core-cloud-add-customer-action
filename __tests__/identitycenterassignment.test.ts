@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import fs from 'fs'
 import { IdentityCenterAssignment } from '../src/identitycenterassignment'
+import { compareTwoFiles } from './utils'
 
 let infoMock: jest.SpyInstance
 
@@ -32,6 +33,24 @@ describe('identitycenterassignment.test.ts', () => {
     expect(infoMock).toHaveBeenCalledWith(
       `0 assignments loaded from file '${filePath}'`
     )
+  })
+
+  it('successfully save file', async () => {
+    const filePath = './__tests__/files/iam/empty.yaml'
+
+    expect(() => {
+      IdentityCenterAssignment(testFilePath).addAssignments('', [])
+    }).not.toThrow()
+
+    expect(infoMock).toHaveBeenNthCalledWith(
+      1,
+      `0 assignments loaded from file '${testFilePath}'`
+    )
+    expect(infoMock).toHaveBeenNthCalledWith(
+      2,
+      `0 assignments written to file '${testFilePath}'`
+    )
+    expect(compareTwoFiles(testFilePath, filePath)).toBe(true)
   })
 
   it('throws an error if an invalid file is provided', async () => {
