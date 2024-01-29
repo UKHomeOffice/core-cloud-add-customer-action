@@ -66,4 +66,6 @@ jobs:
           organisational_units: test
 
       - name: Check diff output
-        run:  git diff --name-only ${{ env.FILE_PATH }} | grep ${{ env.FILE_PATH }} || exit 1
+        run: |
+          git diff --name-only ${{ env.ACCOUNTS_FILE_PATH }} | grep ${{ env.ACCOUNTS_FILE_PATH }} || exit 1
+          git diff --name-only ${{ env.IAM_FILE_PATH }} | grep ${{ env.IAM_FILE_PATH }} || exit 1
