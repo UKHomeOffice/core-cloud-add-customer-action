@@ -33,9 +33,9 @@ describe('action', () => {
     getInputMock = jest.spyOn(core, 'getInput').mockImplementation()
     setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation()
 
-    // copy the './__tests__/files/empty.yaml' for testing
-    testFilePath = `./__tests__/files/test-${Date.now()}.yaml`
-    fs.copyFileSync('./__tests__/files/empty.yaml', testFilePath)
+    // copy the './__tests__/files/account/empty.yaml' for testing
+    testFilePath = `./__tests__/files/account/test-${Date.now()}.yaml`
+    fs.copyFileSync('./__tests__/files/account/empty.yaml', testFilePath)
   })
 
   afterEach(() => {
@@ -45,7 +45,7 @@ describe('action', () => {
   })
 
   it('adds three new accounts', async () => {
-    const expectedFilePath = './__tests__/files/expected.yaml'
+    const expectedFilePath = './__tests__/files/account/expected.yaml'
 
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
@@ -80,7 +80,7 @@ describe('action', () => {
   })
 
   it('attempt to add one invalid organisation unit', async () => {
-    const expectedFilePath = './__tests__/files/empty.yaml'
+    const expectedFilePath = './__tests__/files/account/empty.yaml'
 
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
@@ -123,7 +123,7 @@ describe('action', () => {
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
         case 'file_path':
-          return './__tests__/files/_.yaml'
+          return './__tests__/files/account/_.yaml'
         case 'customer_id':
           return 'CUSTOMERID'
         case 'spoc_email':
@@ -140,7 +140,7 @@ describe('action', () => {
 
     // Verify error message is propagated to setFailed()
     expect(setFailedMock).toHaveBeenCalledWith(
-      `Error reading workload accounts from file './__tests__/files/_.yaml'`
+      `Error reading workload accounts from file './__tests__/files/account/_.yaml'`
     )
 
     expect(errorMock).not.toHaveBeenCalled()

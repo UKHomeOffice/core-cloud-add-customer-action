@@ -20,8 +20,8 @@ describe('accounts.test.ts', () => {
 
     infoMock = jest.spyOn(core, 'info').mockImplementation()
 
-    testFilePath = `./__tests__/files/test-${Date.now()}.yaml`
-    fs.copyFileSync('./__tests__/files/empty.yaml', testFilePath)
+    testFilePath = `./__tests__/files/account/test-${Date.now()}.yaml`
+    fs.copyFileSync('./__tests__/files/account/empty.yaml', testFilePath)
   })
 
   afterEach(() => {
@@ -31,7 +31,7 @@ describe('accounts.test.ts', () => {
   })
 
   it('parses accounts successfully with one workload account present', async () => {
-    const filePath = './__tests__/files/valid.yaml'
+    const filePath = './__tests__/files/account/valid.yaml'
 
     expect(() => {
       WorkloadAccounts(filePath, 'Dev,Test,Prod')
@@ -43,7 +43,7 @@ describe('accounts.test.ts', () => {
   })
 
   it('parses accounts successfully with no workload account present', async () => {
-    const filePath = './__tests__/files/empty.yaml'
+    const filePath = './__tests__/files/account/empty.yaml'
 
     expect(() => {
       WorkloadAccounts(filePath, 'Dev,Test,Prod')
@@ -70,9 +70,9 @@ describe('accounts.test.ts', () => {
       2,
       `1 workload accounts written to file '${testFilePath}'`
     )
-    expect(compareTwoFiles(testFilePath, './__tests__/files/valid.yaml')).toBe(
-      true
-    )
+    expect(
+      compareTwoFiles(testFilePath, './__tests__/files/account/valid.yaml')
+    ).toBe(true)
   })
 
   it('throws an error if an invalid file is provided', async () => {
@@ -89,10 +89,10 @@ describe('accounts.test.ts', () => {
 
   it('throws an error when account email already exists', async () => {
     expect(() => {
-      WorkloadAccounts('./__tests__/files/valid.yaml', 'Test').addAccounts(
-        'Account',
-        'user@example.com'
-      )
+      WorkloadAccounts(
+        './__tests__/files/account/valid.yaml',
+        'Test'
+      ).addAccounts('Account', 'user@example.com')
     }).toThrow()
   })
 })

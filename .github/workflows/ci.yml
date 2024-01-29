@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      FILE_PATH: __tests__/files/empty.yaml
+      FILE_PATH: __tests__/files/account/empty.yaml
 
     steps:
       - name: Checkout
