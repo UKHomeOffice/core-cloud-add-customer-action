@@ -2,7 +2,7 @@ import { capitaliseFirstLetter, toSentenceCase } from './helpers'
 import { YAMLMap } from 'yaml'
 
 type ActionInputKey =
-  | 'file_path'
+  | 'accounts_file_path'
   | 'customer_id'
   | 'spoc_email'
   | 'organisational_units'

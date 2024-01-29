@@ -50,7 +50,7 @@ describe('action', () => {
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
-        case 'file_path':
+        case 'accounts_file_path':
           return testFilePath
         case 'customer_id':
           return 'CUSTOMERID'
@@ -85,7 +85,7 @@ describe('action', () => {
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
-        case 'file_path':
+        case 'accounts_file_path':
           return testFilePath
         case 'customer_id':
           return 'CUSTOMERID'
@@ -122,7 +122,7 @@ describe('action', () => {
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
-        case 'file_path':
+        case 'accounts_file_path':
           return './__tests__/files/account/_.yaml'
         case 'customer_id':
           return 'CUSTOMERID'
@@ -150,7 +150,7 @@ describe('action', () => {
     // Set the action's inputs as return values from core.getInput()
     getInputMock.mockImplementation((name: string): string => {
       switch (name) {
-        case 'file_path':
+        case 'accounts_file_path':
           return './__tests__/files/invalid.yaml'
         case 'customer_id':
           return 'CUSTOMERID'

@@ -2756,7 +2756,7 @@ const types_1 = __nccwpck_require__(5077);
 const core = __importStar(__nccwpck_require__(2186));
 const getActionInputs = () => {
     const variables = [
-        { name: 'file_path', options: { required: true } },
+        { name: 'accounts_file_path', options: { required: true } },
         { name: 'customer_id', options: { required: true } },
         { name: 'spoc_email', options: { required: true } },
         { name: 'organisational_units', options: { required: true } }
@@ -2847,7 +2847,7 @@ const workloadaccounts_1 = __nccwpck_require__(5033);
 async function run() {
     try {
         const inputs = (0, helpers_1.getActionInputs)();
-        (0, workloadaccounts_1.WorkloadAccounts)(inputs.file_path, inputs.organisational_units).addAccounts(inputs.customer_id, inputs.spoc_email);
+        (0, workloadaccounts_1.WorkloadAccounts)(inputs.accounts_file_path, inputs.organisational_units).addAccounts(inputs.customer_id, inputs.spoc_email);
     }
     catch (error) {
         if (error instanceof Error)

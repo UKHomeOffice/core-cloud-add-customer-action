@@ -11,10 +11,10 @@ export async function run(): Promise<void> {
   try {
     const inputs: ActionInput = getActionInputs()
 
-    WorkloadAccounts(inputs.file_path, inputs.organisational_units).addAccounts(
-      inputs.customer_id,
-      inputs.spoc_email
-    )
+    WorkloadAccounts(
+      inputs.accounts_file_path,
+      inputs.organisational_units
+    ).addAccounts(inputs.customer_id, inputs.spoc_email)
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
