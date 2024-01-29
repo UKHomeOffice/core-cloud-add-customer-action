@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ACCOUNT_FILE_PATH: __tests__/files/account/empty.yaml
+      ACCOUNTS_FILE_PATH: __tests__/files/account/empty.yaml
       IAM_FILE_PATH: __tests__/files/iam/empty.yaml
 
     steps:
@@ -59,7 +59,7 @@ jobs:
         id: test-action
         uses: ./
         with:
-          account_file_path: ${{ env.ACCOUNT_FILE_PATH }}
+          accounts_file_path: ${{ env.ACCOUNTS_FILE_PATH }}
           iam_file_path: ${{ env.IAM_FILE_PATH }}
           customer_id: test
           spoc_email: test@example.com
