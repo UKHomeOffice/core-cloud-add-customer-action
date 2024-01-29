@@ -2837,10 +2837,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.IdentityCenterAssignments = void 0;
+exports.IdentityCenterAssignment = exports.IdentityCenterAssignments = void 0;
 const yaml_1 = __nccwpck_require__(4083);
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
+const helpers_1 = __nccwpck_require__(3015);
 const IdentityCenterAssignments = (file_path) => {
     let fileParsed;
     try {
@@ -2854,6 +2855,11 @@ const IdentityCenterAssignments = (file_path) => {
         throw new Error(`Error parsing assignments from file '${file_path}', section is null or undefined`);
     }
     core.info(`${identityCenterAssignments.items?.length} assignments loaded from file '${file_path}'`);
+    const addAssignment = (customerId, accounts) => {
+        const assignment = new IdentityCenterAssignment(customerId, 'PowerAccessUser', accounts);
+        identityCenterAssignments.items.push(assignment);
+        identityCenterAssignments.flow = false;
+    };
     const writeAssignments = () => {
         try {
             core.info(`${identityCenterAssignments.items?.length} assignments written to file '${file_path}'`);
@@ -2865,11 +2871,44 @@ const IdentityCenterAssignments = (file_path) => {
     };
     return {
         addAssignments(customer_id, accounts) {
+            addAssignment(customer_id, accounts);
             writeAssignments();
         }
     };
 };
 exports.IdentityCenterAssignments = IdentityCenterAssignments;
+class IdentityCenterAssignment extends yaml_1.YAMLMap {
+    constructor(name, permissionSetName, accounts) {
+        super();
+        this.set('name', IdentityCenterAssignment.getName(name));
+        this.set('permissionSetName', permissionSetName);
+        this.set('principals', [
+            new Principal(IdentityCenterAssignment.getGroupName(name, permissionSetName))
+        ]);
+        this.set('deploymentTargets', new DeploymentTarget(accounts.map(account => account.getName())));
+    }
+    static getName = (customerId) => {
+        return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}Assignment`;
+    };
+    static getGroupName = (customerId, permissionSetName) => {
+        return `Foundry${permissionSetName}${(0, helpers_1.capitaliseFirstLetter)(customerId)}`;
+    };
+}
+exports.IdentityCenterAssignment = IdentityCenterAssignment;
+class Principal {
+    type;
+    name;
+    constructor(name) {
+        this.type = 'GROUP';
+        this.name = name;
+    }
+}
+class DeploymentTarget {
+    accounts;
+    constructor(accounts) {
+        this.accounts = accounts;
+    }
+}
 
 
 /***/ }),

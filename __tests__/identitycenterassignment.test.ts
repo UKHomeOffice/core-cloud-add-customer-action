@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import fs from 'fs'
 import { IdentityCenterAssignments } from '../src/identitycenterassignment'
 import { compareTwoFiles } from './utils'
+import { WorkloadAccount } from '../src/workloadaccounts'
 
 let infoMock: jest.SpyInstance
 
@@ -35,11 +36,14 @@ describe('identitycenterassignment.test.ts', () => {
     )
   })
 
-  it('successfully save file', async () => {
-    const filePath = './__tests__/files/iam/empty.yaml'
+  it('successfully add assignment', async () => {
+    const filePath = './__tests__/files/iam/expected.yaml'
 
     expect(() => {
-      IdentityCenterAssignments(testFilePath).addAssignments('', [])
+      IdentityCenterAssignments(testFilePath).addAssignments('TestAccount', [
+        new WorkloadAccount('TestAccount', 'test@example.com', 'Dev'),
+        new WorkloadAccount('TestAccount', 'test@example.com', 'Test')
+      ])
     }).not.toThrow()
 
     expect(infoMock).toHaveBeenNthCalledWith(
@@ -48,7 +52,7 @@ describe('identitycenterassignment.test.ts', () => {
     )
     expect(infoMock).toHaveBeenNthCalledWith(
       2,
-      `0 assignments written to file '${testFilePath}'`
+      `1 assignments written to file '${testFilePath}'`
     )
     expect(compareTwoFiles(testFilePath, filePath)).toBe(true)
   })
