@@ -2860,44 +2860,18 @@ exports.run = run;
 /***/ }),
 
 /***/ 5077:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.WorkloadAccount = exports.DeploymentEnvironment = void 0;
-const helpers_1 = __nccwpck_require__(3015);
-const yaml_1 = __nccwpck_require__(4083);
+exports.DeploymentEnvironment = void 0;
 var DeploymentEnvironment;
 (function (DeploymentEnvironment) {
     DeploymentEnvironment["dev"] = "Dev";
     DeploymentEnvironment["test"] = "Test";
     DeploymentEnvironment["prod"] = "Prod";
 })(DeploymentEnvironment || (exports.DeploymentEnvironment = DeploymentEnvironment = {}));
-class WorkloadAccount extends yaml_1.YAMLMap {
-    constructor(name, description, email, orgUnit) {
-        super();
-        this.set('name', name);
-        this.set('description', description);
-        this.set('email', email);
-        this.set('organizationalUnit', orgUnit);
-    }
-    static getCustomerName = (customerId, orgUnitName) => {
-        return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}${(0, helpers_1.toSentenceCase)(orgUnitName)}`;
-    };
-    static getDescription = (customerId, orgUnitName) => {
-        return `The ${(0, helpers_1.toSentenceCase)(customerId)} ${(0, helpers_1.toSentenceCase)(orgUnitName)} Account`;
-    };
-    static getEmail = (email, customerId, orgUnitName) => {
-        const emailSplit = email.split('@');
-        const emailPrefix = `${emailSplit[0]}+${customerId}-${orgUnitName}`;
-        if (emailPrefix.length > 64) {
-            throw new Error(`Email prefix '${emailPrefix}' is too long, must be 64 characters or less`);
-        }
-        return `${emailPrefix}@${emailSplit[1]}`.toLowerCase();
-    };
-}
-exports.WorkloadAccount = WorkloadAccount;
 
 
 /***/ }),
@@ -2931,9 +2905,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.WorkloadAccounts = void 0;
+exports.WorkloadAccount = exports.WorkloadAccounts = void 0;
 const helpers_1 = __nccwpck_require__(3015);
-const types_1 = __nccwpck_require__(5077);
 const yaml_1 = __nccwpck_require__(4083);
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
@@ -2952,12 +2925,12 @@ const WorkloadAccounts = (file_path, organisation_units) => {
     }
     core.info(`${workloadAccounts.items?.length} workload accounts loaded from file '${file_path}'`);
     const addWorkloadAccount = (customerId, email, organisationUnit) => {
-        const workloadEmail = types_1.WorkloadAccount.getEmail(email, customerId, organisationUnit);
-        const conflictingAccount = workloadAccounts.items.find(account => account.get('email') === workloadEmail);
+        const workloadAccount = new WorkloadAccount(customerId, email, organisationUnit);
+        const conflictingAccount = workloadAccounts.items.find(account => account.get('email') === workloadAccount.getEmail());
         if (conflictingAccount) {
             throw new Error(`Email already exists within file ${file_path}: ${conflictingAccount.toString()}`);
         }
-        workloadAccounts.items.push(new types_1.WorkloadAccount(types_1.WorkloadAccount.getCustomerName(customerId, organisationUnit), types_1.WorkloadAccount.getDescription(customerId, organisationUnit), workloadEmail, organisationUnit));
+        workloadAccounts.items.push(workloadAccount);
         // This ensures that the array is mapped correctly if initially empty.
         workloadAccounts.flow = false;
     };
@@ -2980,6 +2953,39 @@ const WorkloadAccounts = (file_path, organisation_units) => {
     };
 };
 exports.WorkloadAccounts = WorkloadAccounts;
+class WorkloadAccount extends yaml_1.YAMLMap {
+    constructor(name, email, orgUnit) {
+        super();
+        this.set('name', WorkloadAccount.getCustomerName(name, orgUnit));
+        this.set('description', WorkloadAccount.getDescription(name, orgUnit));
+        this.set('email', WorkloadAccount.getEmail(email, name, orgUnit));
+        this.set('organizationalUnit', orgUnit);
+    }
+    getName() {
+        return this.get('name');
+    }
+    getDescription() {
+        return this.get('description');
+    }
+    getEmail() {
+        return this.get('email');
+    }
+    static getCustomerName = (customerId, orgUnitName) => {
+        return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}${(0, helpers_1.toSentenceCase)(orgUnitName)}`;
+    };
+    static getDescription = (customerId, orgUnitName) => {
+        return `The ${(0, helpers_1.toSentenceCase)(customerId)} ${(0, helpers_1.toSentenceCase)(orgUnitName)} Account`;
+    };
+    static getEmail = (email, customerId, orgUnitName) => {
+        const emailSplit = email.split('@');
+        const emailPrefix = `${emailSplit[0]}+${customerId}-${orgUnitName}`;
+        if (emailPrefix.length > 64) {
+            throw new Error(`Email prefix '${emailPrefix}' is too long, must be 64 characters or less`);
+        }
+        return `${emailPrefix}@${emailSplit[1]}`.toLowerCase();
+    };
+}
+exports.WorkloadAccount = WorkloadAccount;
 
 
 /***/ }),

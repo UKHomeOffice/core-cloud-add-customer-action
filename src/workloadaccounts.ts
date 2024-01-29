@@ -1,5 +1,8 @@
-import { getOrganisationalUnits } from './helpers'
-import { WorkloadAccount, WorkloadAccountAction } from './types'
+import {
+  capitaliseFirstLetter,
+  getOrganisationalUnits,
+  toSentenceCase
+} from './helpers'
 import { Document, parseDocument, YAMLMap, YAMLSeq } from 'yaml'
 import { readFileSync, writeFileSync } from 'fs'
 import * as core from '@actions/core'
@@ -36,14 +39,14 @@ export const WorkloadAccounts = (
     email: string,
     organisationUnit: string
   ): void => {
-    const workloadEmail = WorkloadAccount.getEmail(
-      email,
+    const workloadAccount = new WorkloadAccount(
       customerId,
+      email,
       organisationUnit
     )
 
     const conflictingAccount = workloadAccounts.items.find(
-      account => account.get('email') === workloadEmail
+      account => account.get('email') === workloadAccount.getEmail()
     ) as WorkloadAccount | undefined
     if (conflictingAccount) {
       throw new Error(
@@ -51,14 +54,7 @@ export const WorkloadAccounts = (
       )
     }
 
-    workloadAccounts.items.push(
-      new WorkloadAccount(
-        WorkloadAccount.getCustomerName(customerId, organisationUnit),
-        WorkloadAccount.getDescription(customerId, organisationUnit),
-        workloadEmail,
-        organisationUnit
-      )
-    )
+    workloadAccounts.items.push(workloadAccount)
 
     // This ensures that the array is mapped correctly if initially empty.
     workloadAccounts.flow = false
@@ -83,4 +79,61 @@ export const WorkloadAccounts = (
       writeAccounts()
     }
   }
+}
+
+export class WorkloadAccount extends YAMLMap<string, string> {
+  constructor(name: string, email: string, orgUnit: string) {
+    super()
+    this.set('name', WorkloadAccount.getCustomerName(name, orgUnit))
+    this.set('description', WorkloadAccount.getDescription(name, orgUnit))
+    this.set('email', WorkloadAccount.getEmail(email, name, orgUnit))
+    this.set('organizationalUnit', orgUnit)
+  }
+
+  getName(): string {
+    return this.get('name') as string
+  }
+
+  getDescription(): string {
+    return this.get('description') as string
+  }
+
+  getEmail(): string {
+    return this.get('email') as string
+  }
+
+  private static getCustomerName = (
+    customerId: string,
+    orgUnitName: string
+  ): string => {
+    return `${capitaliseFirstLetter(customerId)}${toSentenceCase(orgUnitName)}`
+  }
+
+  private static getDescription = (
+    customerId: string,
+    orgUnitName: string
+  ): string => {
+    return `The ${toSentenceCase(customerId)} ${toSentenceCase(
+      orgUnitName
+    )} Account`
+  }
+
+  private static getEmail = (
+    email: string,
+    customerId: string,
+    orgUnitName: string
+  ): string => {
+    const emailSplit = email.split('@')
+    const emailPrefix = `${emailSplit[0]}+${customerId}-${orgUnitName}`
+    if (emailPrefix.length > 64) {
+      throw new Error(
+        `Email prefix '${emailPrefix}' is too long, must be 64 characters or less`
+      )
+    }
+    return `${emailPrefix}@${emailSplit[1]}`.toLowerCase()
+  }
+}
+
+export type WorkloadAccountAction = {
+  addAccounts(customer_id: string, spoc_email: string): void
 }
