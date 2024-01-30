@@ -2850,7 +2850,10 @@ const IdentityCenterAssignments = (file_path) => {
     catch (error) {
         throw new Error(`Error reading assignments from file '${file_path}'`);
     }
-    const identityCenterAssignments = fileParsed.get('identityCenterAssignments');
+    const identityCenterAssignments = fileParsed.getIn([
+        'identityCenter',
+        'identityCenterAssignments'
+    ]);
     if (!identityCenterAssignments) {
         throw new Error(`Error parsing assignments from file '${file_path}', section is null or undefined`);
     }

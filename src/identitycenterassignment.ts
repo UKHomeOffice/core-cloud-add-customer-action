@@ -15,9 +15,10 @@ export const IdentityCenterAssignments = (
     throw new Error(`Error reading assignments from file '${file_path}'`)
   }
 
-  const identityCenterAssignments: YAMLSeq<YAMLMap> = fileParsed.getIn(
-      ["identityCenter", "identityCenterAssignments"]
-  ) as YAMLSeq<YAMLMap>
+  const identityCenterAssignments: YAMLSeq<YAMLMap> = fileParsed.getIn([
+    'identityCenter',
+    'identityCenterAssignments'
+  ]) as YAMLSeq<YAMLMap>
   if (!identityCenterAssignments) {
     throw new Error(
       `Error parsing assignments from file '${file_path}', section is null or undefined`
