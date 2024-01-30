@@ -3,11 +3,8 @@ description: 'GitHub Action to add a customer to the Core Cloud LZA config'
 author: 'ukhomeoffice'
 
 inputs:
-  accounts_file_path:
-    description: 'Relative path to the accounts-config.yaml file'
-    required: true
-  iam_file_path:
-    description: 'Relative path to the iam-config.yaml file'
+  folder_path:
+    description: 'Relative path to the folder containing the files'
     required: true
   customer_id:
     description: 'Unique name for the customer'

@@ -6,11 +6,13 @@ import {
 import { Document, parseDocument, YAMLMap, YAMLSeq } from 'yaml'
 import { readFileSync, writeFileSync } from 'fs'
 import * as core from '@actions/core'
+import * as path from 'path'
 
 export const WorkloadAccounts = (
-  file_path: string,
+  folder_path: string,
   organisation_units: string
 ): WorkloadAccountAction => {
+  const file_path = path.join(folder_path, 'accounts-config.yaml')
   const deploymentEnvironments = getOrganisationalUnits(organisation_units)
 
   let fileParsed: Document.Parsed
@@ -26,7 +28,7 @@ export const WorkloadAccounts = (
   ) as YAMLSeq<YAMLMap>
   if (!workloadAccounts) {
     throw new Error(
-      `Error parsing workload accounts from file '${file_path}', accounts section is null or undefined`
+      `Error parsing workload accounts from file '${file_path}', accounts section is not present`
     )
   }
 
@@ -78,6 +80,10 @@ export const WorkloadAccounts = (
       const newWorkloadAccounts = deploymentEnvironments.map(orgUnitName => {
         return addWorkloadAccount(customer_id, spoc_email, orgUnitName)
       })
+
+      if (newWorkloadAccounts.length === 0) {
+        return newWorkloadAccounts
+      }
 
       writeAccounts()
 

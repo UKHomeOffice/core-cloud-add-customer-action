@@ -1,6 +1,5 @@
 type ActionInputKey =
-  | 'accounts_file_path'
-  | 'iam_file_path'
+  | 'folder_path'
   | 'customer_id'
   | 'spoc_email'
   | 'organisational_units'

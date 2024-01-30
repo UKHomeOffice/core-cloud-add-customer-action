@@ -5,8 +5,10 @@ import { WorkloadAccount } from './workloadaccounts'
 import { capitaliseFirstLetter } from './helpers'
 
 export const IdentityCenterAssignments = (
-  file_path: string
+  folder_path: string
 ): IdentityCenterAssignmentsAction => {
+  const file_path = `${folder_path}/iam-config.yaml`
+
   let fileParsed: Document.Parsed
 
   try {
@@ -21,7 +23,7 @@ export const IdentityCenterAssignments = (
   ]) as YAMLSeq<YAMLMap>
   if (!identityCenterAssignments) {
     throw new Error(
-      `Error parsing assignments from file '${file_path}', section is null or undefined`
+      `Error parsing assignments from file '${file_path}', assignments section is not present`
     )
   }
 

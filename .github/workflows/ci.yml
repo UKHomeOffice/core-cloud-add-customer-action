@@ -47,20 +47,29 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ACCOUNTS_FILE_PATH: __tests__/files/account/empty.yaml
-      IAM_FILE_PATH: __tests__/files/iam/empty.yaml
+      FOLDER_PATH: __tests__/files/tmp
+      ACCOUNTS_FILE_PATH: ${{ FOLDER_PATH }}/accounts-config.yaml
+      IAM_FILE_PATH: ${{ FOLDER_PATH }}/iam-config.yaml
 
     steps:
       - name: Checkout
         id: checkout
         uses: actions/checkout@v4
 
+      - name: Setup Files
+        env:
+          EMPTY_ACCOUNTS_FILE_PATH: __tests__/files/account/empty.yaml
+          EMPTY_IAM_FILE_PATH: __tests__/files/iam/empty.yaml
+        run: |
+          mkdir -p $(dirname ${{ FOLDER_PATH }}) 
+          cp ${{ EMPTY_ACCOUNTS_FILE_PATH }} ${{ env.ACCOUNTS_FILE_PATH }}
+          cp ${{ EMPTY_IAM_FILE_PATH }} ${{ env.IAM_FILE_PATH }}
+
       - name: Test Local Action
         id: test-action
         uses: ./
         with:
-          accounts_file_path: ${{ env.ACCOUNTS_FILE_PATH }}
-          iam_file_path: ${{ env.IAM_FILE_PATH }}
+          folder_path: ${{ env.FOLDER_PATH }}
           customer_id: test
           spoc_email: test@example.com
           organisational_units: test

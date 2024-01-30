@@ -1,71 +1,93 @@
 import * as core from '@actions/core'
 import fs from 'fs'
 import { IdentityCenterAssignments } from '../src/identitycenterassignment'
-import { compareTwoFiles } from './utils'
+import { compareTwoFiles, testWithFiles } from './utils'
 import { WorkloadAccount } from '../src/workloadaccounts'
-
-let infoMock: jest.SpyInstance
+import * as path from 'node:path'
 
 describe('identitycenterassignment.test.ts', () => {
-  let testFilePath: string
+  const testDirectory = `__tests__/files/tmp-${new Date().getTime()}`
+  const expectedFilePath = path.join(testDirectory, 'iam-config.yaml')
+
+  let infoMock: jest.SpyInstance
+
+  beforeAll(() => {
+    if (!fs.existsSync(testDirectory)) {
+      fs.mkdirSync(testDirectory)
+    }
+  })
 
   beforeEach(() => {
     jest.clearAllMocks()
 
     infoMock = jest.spyOn(core, 'info').mockImplementation()
-
-    testFilePath = `./__tests__/files/iam/test-${Date.now()}.yaml`
-    fs.copyFileSync('./__tests__/files/iam/empty.yaml', testFilePath)
   })
 
-  afterEach(() => {
-    if (fs.existsSync(testFilePath)) {
-      fs.unlinkSync(testFilePath)
+  afterAll(() => {
+    if (fs.existsSync(testDirectory)) {
+      fs.rmSync(testDirectory, { recursive: true, force: true })
     }
   })
 
   it('parses accounts successfully with no workload account present', async () => {
-    const filePath = './__tests__/files/iam/empty.yaml'
+    testWithFiles(
+      [{ from: '__tests__/files/iam/empty.yaml', to: expectedFilePath }],
+      () => {
+        expect(() => {
+          IdentityCenterAssignments(testDirectory)
+        }).not.toThrow()
 
-    expect(() => {
-      IdentityCenterAssignments(filePath)
-    }).not.toThrow()
-
-    expect(infoMock).toHaveBeenCalledWith(
-      `0 assignments loaded from file '${filePath}'`
+        expect(infoMock).toHaveBeenCalledWith(
+          `0 assignments loaded from file '${expectedFilePath}'`
+        )
+      }
     )
   })
 
   it('successfully add assignment', async () => {
-    const filePath = './__tests__/files/iam/expected.yaml'
+    testWithFiles(
+      [{ from: '__tests__/files/iam/empty.yaml', to: expectedFilePath }],
+      () => {
+        expect(() => {
+          IdentityCenterAssignments(testDirectory).addAssignments(
+            'CUSTOMERID',
+            [
+              new WorkloadAccount('CUSTOMERID', 'test@example.com', 'Dev'),
+              new WorkloadAccount('CUSTOMERID', 'test@example.com', 'Test'),
+              new WorkloadAccount('CUSTOMERID', 'test@example.com', 'Prod')
+            ]
+          )
+        }).not.toThrow()
 
-    expect(() => {
-      IdentityCenterAssignments(testFilePath).addAssignments('TestAccount', [
-        new WorkloadAccount('TestAccount', 'test@example.com', 'Dev'),
-        new WorkloadAccount('TestAccount', 'test@example.com', 'Test')
-      ])
-    }).not.toThrow()
-
-    expect(infoMock).toHaveBeenNthCalledWith(
-      1,
-      `0 assignments loaded from file '${testFilePath}'`
+        expect(infoMock).toHaveBeenNthCalledWith(
+          1,
+          `0 assignments loaded from file '${expectedFilePath}'`
+        )
+        expect(infoMock).toHaveBeenNthCalledWith(
+          2,
+          `1 assignments written to file '${expectedFilePath}'`
+        )
+        expect(
+          compareTwoFiles(expectedFilePath, '__tests__/files/iam/expected.yaml')
+        ).toBe(true)
+      }
     )
-    expect(infoMock).toHaveBeenNthCalledWith(
-      2,
-      `1 assignments written to file '${testFilePath}'`
-    )
-    expect(compareTwoFiles(testFilePath, filePath)).toBe(true)
   })
 
   it('throws an error if an invalid file is provided', async () => {
-    expect(() => {
-      IdentityCenterAssignments('./__tests__/files/invalid.yaml')
-    }).toThrow()
+    testWithFiles(
+      [{ from: '__tests__/files/invalid.yaml', to: expectedFilePath }],
+      () => {
+        expect(() => {
+          IdentityCenterAssignments(testDirectory)
+        }).toThrow()
+      }
+    )
   })
 
   it('throws an error if the file cannot be found', async () => {
     expect(() => {
-      IdentityCenterAssignments('./__tests__/files/_.yaml')
+      IdentityCenterAssignments(testDirectory)
     }).toThrow()
   })
 })

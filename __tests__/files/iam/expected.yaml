@@ -1,12 +1,13 @@
 # This is a comment that should be preserved
 identityCenter:
   identityCenterAssignments:
-    - name: TestAccountAssignment
+    - name: CUSTOMERIDAssignment
       permissionSetName: PowerAccessUser
       principals:
         - type: GROUP
-          name: FoundryPowerAccessUserTestAccount
+          name: FoundryPowerAccessUserCUSTOMERID
       deploymentTargets:
         accounts:
-          - TestAccountDev
-          - TestAccountTest
+          - CUSTOMERIDDev
+          - CUSTOMERIDTest
+          - CUSTOMERIDProd

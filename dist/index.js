@@ -2756,8 +2756,7 @@ const types_1 = __nccwpck_require__(5077);
 const core = __importStar(__nccwpck_require__(2186));
 const getActionInputs = () => {
     const variables = [
-        { name: 'accounts_file_path', options: { required: true } },
-        { name: 'iam_file_path', options: { required: true } },
+        { name: 'folder_path', options: { required: true } },
         { name: 'customer_id', options: { required: true } },
         { name: 'spoc_email', options: { required: true } },
         { name: 'organisational_units', options: { required: true } }
@@ -2842,7 +2841,8 @@ const yaml_1 = __nccwpck_require__(4083);
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
 const helpers_1 = __nccwpck_require__(3015);
-const IdentityCenterAssignments = (file_path) => {
+const IdentityCenterAssignments = (folder_path) => {
+    const file_path = `${folder_path}/iam-config.yaml`;
     let fileParsed;
     try {
         fileParsed = (0, yaml_1.parseDocument)((0, fs_1.readFileSync)(file_path, 'utf8'));
@@ -2855,7 +2855,7 @@ const IdentityCenterAssignments = (file_path) => {
         'identityCenterAssignments'
     ]);
     if (!identityCenterAssignments) {
-        throw new Error(`Error parsing assignments from file '${file_path}', section is null or undefined`);
+        throw new Error(`Error parsing assignments from file '${file_path}', assignments section is not present`);
     }
     core.info(`${identityCenterAssignments.items?.length} assignments loaded from file '${file_path}'`);
     const addAssignment = (customerId, accounts) => {
@@ -2957,8 +2957,12 @@ const identitycenterassignment_1 = __nccwpck_require__(6064);
 async function run() {
     try {
         const inputs = (0, helpers_1.getActionInputs)();
-        const accounts = (0, workloadaccounts_1.WorkloadAccounts)(inputs.accounts_file_path, inputs.organisational_units).addAccounts(inputs.customer_id, inputs.spoc_email);
-        (0, identitycenterassignment_1.IdentityCenterAssignments)(inputs.iam_file_path).addAssignments(inputs.customer_id, accounts);
+        const accounts = (0, workloadaccounts_1.WorkloadAccounts)(inputs.folder_path, inputs.organisational_units).addAccounts(inputs.customer_id, inputs.spoc_email);
+        if (accounts.length === 0) {
+            core.setFailed('No workload accounts added');
+            return;
+        }
+        (0, identitycenterassignment_1.IdentityCenterAssignments)(inputs.folder_path).addAssignments(inputs.customer_id, accounts);
     }
     catch (error) {
         if (error instanceof Error)
@@ -3021,7 +3025,9 @@ const helpers_1 = __nccwpck_require__(3015);
 const yaml_1 = __nccwpck_require__(4083);
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
-const WorkloadAccounts = (file_path, organisation_units) => {
+const path = __importStar(__nccwpck_require__(1017));
+const WorkloadAccounts = (folder_path, organisation_units) => {
+    const file_path = path.join(folder_path, 'accounts-config.yaml');
     const deploymentEnvironments = (0, helpers_1.getOrganisationalUnits)(organisation_units);
     let fileParsed;
     try {
@@ -3032,7 +3038,7 @@ const WorkloadAccounts = (file_path, organisation_units) => {
     }
     const workloadAccounts = fileParsed.get('workloadAccounts');
     if (!workloadAccounts) {
-        throw new Error(`Error parsing workload accounts from file '${file_path}', accounts section is null or undefined`);
+        throw new Error(`Error parsing workload accounts from file '${file_path}', accounts section is not present`);
     }
     core.info(`${workloadAccounts.items?.length} workload accounts loaded from file '${file_path}'`);
     const addWorkloadAccount = (customerId, email, organisationUnit) => {
@@ -3060,6 +3066,9 @@ const WorkloadAccounts = (file_path, organisation_units) => {
             const newWorkloadAccounts = deploymentEnvironments.map(orgUnitName => {
                 return addWorkloadAccount(customer_id, spoc_email, orgUnitName);
             });
+            if (newWorkloadAccounts.length === 0) {
+                return newWorkloadAccounts;
+            }
             writeAccounts();
             return newWorkloadAccounts;
         }

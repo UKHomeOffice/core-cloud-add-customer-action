@@ -13,11 +13,16 @@ export async function run(): Promise<void> {
     const inputs: ActionInput = getActionInputs()
 
     const accounts = WorkloadAccounts(
-      inputs.accounts_file_path,
+      inputs.folder_path,
       inputs.organisational_units
     ).addAccounts(inputs.customer_id, inputs.spoc_email)
 
-    IdentityCenterAssignments(inputs.iam_file_path).addAssignments(
+    if (accounts.length === 0) {
+      core.setFailed('No workload accounts added')
+      return
+    }
+
+    IdentityCenterAssignments(inputs.folder_path).addAssignments(
       inputs.customer_id,
       accounts
     )
