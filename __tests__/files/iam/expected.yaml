@@ -1,11 +1,12 @@
 # This is a comment that should be preserved
-identityCenterAssignments:
-  - name: TestAccountAssignment
-    permissionSetName: PowerAccessUser
-    principals:
-      - type: GROUP
-        name: FoundryPowerAccessUserTestAccount
-    deploymentTargets:
-      accounts:
-        - TestAccountDev
-        - TestAccountTest
+identityCenter:
+  identityCenterAssignments:
+    - name: TestAccountAssignment
+      permissionSetName: PowerAccessUser
+      principals:
+        - type: GROUP
+          name: FoundryPowerAccessUserTestAccount
+      deploymentTargets:
+        accounts:
+          - TestAccountDev
+          - TestAccountTest
