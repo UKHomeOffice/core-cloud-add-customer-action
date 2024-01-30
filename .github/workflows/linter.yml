@@ -39,7 +39,8 @@ jobs:
           DEFAULT_BRANCH: main
           FILTER_REGEX_EXCLUDE: dist/**/*
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TYPESCRIPT_DEFAULT_STYLE: prettier
           VALIDATE_ALL_CODEBASE: true
           VALIDATE_JAVASCRIPT_STANDARD: false
+          # This is throwing false positives, whereas running prettier directly reports no issues.
+          VALIDATE_TYPESCRIPT_STANDARD: false
           VALIDATE_JSCPD: false
