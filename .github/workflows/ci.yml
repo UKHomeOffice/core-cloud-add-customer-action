@@ -48,8 +48,8 @@ jobs:
 
     env:
       FOLDER_PATH: __tests__/files/tmp
-      ACCOUNTS_FILE_PATH: ${{ FOLDER_PATH }}/accounts-config.yaml
-      IAM_FILE_PATH: ${{ FOLDER_PATH }}/iam-config.yaml
+      ACCOUNTS_FILE_PATH: ${{ env.FOLDER_PATH }}/accounts-config.yaml
+      IAM_FILE_PATH: ${{ env.FOLDER_PATH }}/iam-config.yaml
 
     steps:
       - name: Checkout
@@ -61,9 +61,9 @@ jobs:
           EMPTY_ACCOUNTS_FILE_PATH: __tests__/files/account/empty.yaml
           EMPTY_IAM_FILE_PATH: __tests__/files/iam/empty.yaml
         run: |
-          mkdir -p $(dirname ${{ FOLDER_PATH }}) 
-          cp ${{ EMPTY_ACCOUNTS_FILE_PATH }} ${{ env.ACCOUNTS_FILE_PATH }}
-          cp ${{ EMPTY_IAM_FILE_PATH }} ${{ env.IAM_FILE_PATH }}
+          mkdir -p $(dirname ${{ env.FOLDER_PATH }}) 
+          cp ${{ env.EMPTY_ACCOUNTS_FILE_PATH }} ${{ env.ACCOUNTS_FILE_PATH }}
+          cp ${{ env.EMPTY_IAM_FILE_PATH }} ${{ env.IAM_FILE_PATH }}
 
       - name: Test Local Action
         id: test-action
