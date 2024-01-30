@@ -10,7 +10,7 @@ import * as core from '@actions/core'
 import * as main from '../src/main'
 import * as fs from 'fs'
 import { compareTwoFiles, testWithFiles } from './utils'
-import path from 'node:path'
+import * as path from 'node:path'
 
 // Mock the action's main function
 const runMock = jest.spyOn(main, 'run')
@@ -24,6 +24,9 @@ let setFailedMock: jest.SpyInstance
 
 describe('action', () => {
   const testDirectory = `__tests__/files/tmp-${new Date().getTime()}`
+  const testAccountFile = path.join(testDirectory, 'accounts-config.yaml')
+  const testIamFile = path.join(testDirectory, 'iam-config.yaml')
+
   const expectedAccountFilePath = '__tests__/files/account/expected.yaml'
   const expectedIamFilePath = '__tests__/files/iam/expected.yaml'
 
@@ -49,19 +52,19 @@ describe('action', () => {
     }
   })
 
-  it('adds three new accounts', async () => {
+  it('adds three new accounts', () => {
     testWithFiles(
       [
         {
           from: '__tests__/files/account/empty.yaml',
-          to: path.join(testDirectory, 'accounts-config.yaml')
+          to: testAccountFile
         },
         {
           from: '__tests__/files/iam/empty.yaml',
-          to: path.join(testDirectory, 'iam-config.yaml')
+          to: testIamFile
         }
       ],
-      ([accountFile, iamFile]) => {
+      async ([accountFile, iamFile]) => {
         getInputMock.mockImplementation((name: string): string => {
           switch (name) {
             case 'folder_path':
@@ -77,7 +80,7 @@ describe('action', () => {
           }
         })
 
-        main.run()
+        await main.run()
 
         expect(runMock).toHaveReturned()
         expect(infoMock).toHaveBeenNthCalledWith(
@@ -105,19 +108,19 @@ describe('action', () => {
     )
   })
 
-  it('attempt to add one invalid organisation unit', async () => {
+  it('attempt to add one invalid organisation unit', () => {
     testWithFiles(
       [
         {
           from: '__tests__/files/account/empty.yaml',
-          to: path.join(testDirectory, 'accounts-config.yaml')
+          to: testAccountFile
         },
         {
           from: '__tests__/files/iam/empty.yaml',
-          to: path.join(testDirectory, 'iam-config.yaml')
+          to: testIamFile
         }
       ],
-      ([accountFile]) => {
+      async ([accountFile]) => {
         // Set the action's inputs as return values from core.getInput()
         getInputMock.mockImplementation((name: string): string => {
           switch (name) {
@@ -134,7 +137,7 @@ describe('action', () => {
           }
         })
 
-        main.run()
+        await main.run()
 
         expect(runMock).toHaveReturned()
         expect(infoMock).toHaveBeenNthCalledWith(
@@ -156,8 +159,8 @@ describe('action', () => {
     )
   })
 
-  it('sets a failed status on missing account input file', async () => {
-    testWithFiles([], () => {
+  it('sets a failed status on missing account input file', () => {
+    testWithFiles([], async () => {
       getInputMock.mockImplementation((name: string): string => {
         switch (name) {
           case 'folder_path':
@@ -173,7 +176,7 @@ describe('action', () => {
         }
       })
 
-      main.run()
+      await main.run()
       expect(runMock).toHaveReturned()
 
       // Verify error message is propagated to setFailed()
@@ -190,10 +193,10 @@ describe('action', () => {
       [
         {
           from: '__tests__/files/account/empty.yaml',
-          to: path.join(testDirectory, 'accounts-config.yaml')
+          to: testAccountFile
         }
       ],
-      ([accountFile]) => {
+      async ([accountFile]) => {
         getInputMock.mockImplementation((name: string): string => {
           switch (name) {
             case 'folder_path':
@@ -209,7 +212,7 @@ describe('action', () => {
           }
         })
 
-        main.run()
+        await main.run()
         expect(runMock).toHaveReturned()
 
         expect(infoMock).toHaveBeenNthCalledWith(
@@ -232,15 +235,15 @@ describe('action', () => {
     )
   })
 
-  it('sets a failed status on invalid yaml account file', async () => {
+  it('sets a failed status on invalid yaml account file', () => {
     testWithFiles(
       [
         {
           from: '__tests__/files/invalid.yaml',
-          to: path.join(testDirectory, 'accounts-config.yaml')
+          to: testAccountFile
         }
       ],
-      ([accountFile]) => {
+      async ([accountFile]) => {
         // Set the action's inputs as return values from core.getInput()
         getInputMock.mockImplementation((name: string): string => {
           switch (name) {
@@ -257,7 +260,7 @@ describe('action', () => {
           }
         })
 
-        main.run()
+        await main.run()
         expect(runMock).toHaveReturned()
 
         // Verify error message is propagated to setFailed()
@@ -270,19 +273,19 @@ describe('action', () => {
     )
   })
 
-  it('sets a failed status on invalid yaml iam file', async () => {
+  it('sets a failed status on invalid yaml iam file', () => {
     testWithFiles(
       [
         {
           from: '__tests__/files/account/empty.yaml',
-          to: path.join(testDirectory, 'accounts-config.yaml')
+          to: testAccountFile
         },
         {
           from: '__tests__/files/invalid.yaml',
-          to: path.join(testDirectory, 'iam-config.yaml')
+          to: testIamFile
         }
       ],
-      ([, iamFile]) => {
+      async ([, iamFile]) => {
         getInputMock.mockImplementation((name: string): string => {
           switch (name) {
             case 'folder_path':
@@ -298,7 +301,7 @@ describe('action', () => {
           }
         })
 
-        main.run()
+        await main.run()
         expect(runMock).toHaveReturned()
 
         // Verify error message is propagated to setFailed()

@@ -44,8 +44,7 @@ describe('workloadaccounts.test.ts', () => {
             to: expectedFilePath
           }
         ],
-
-        () => {
+        async () => {
           expect(() => {
             WorkloadAccounts(testDirectory, 'Dev,Test,Prod')
           }).not.toThrow()
@@ -60,7 +59,7 @@ describe('workloadaccounts.test.ts', () => {
     it('parses accounts successfully with no workload account present', async () => {
       testWithFiles(
         [{ from: '__tests__/files/account/empty.yaml', to: expectedFilePath }],
-        () => {
+        async () => {
           expect(() => {
             WorkloadAccounts(testDirectory, 'Dev,Test,Prod')
           }).not.toThrow()
@@ -75,7 +74,7 @@ describe('workloadaccounts.test.ts', () => {
     it('successfully add new workload account', async () => {
       testWithFiles(
         [{ from: '__tests__/files/account/empty.yaml', to: expectedFilePath }],
-        () => {
+        async () => {
           expect(() => {
             WorkloadAccounts(testDirectory, 'Test').addAccounts(
               'Account',
@@ -104,7 +103,7 @@ describe('workloadaccounts.test.ts', () => {
     it('throws an error if an invalid file is provided', async () => {
       testWithFiles(
         [{ from: '__tests__/files/invalid.yaml', to: expectedFilePath }],
-        () => {
+        async () => {
           expect(() => {
             WorkloadAccounts(testDirectory, 'Test')
           }).toThrow()
@@ -121,7 +120,7 @@ describe('workloadaccounts.test.ts', () => {
     it('throws an error when account email already exists', async () => {
       testWithFiles(
         [{ from: '__tests__/files/account/valid.yaml', to: expectedFilePath }],
-        () => {
+        async () => {
           expect(() => {
             WorkloadAccounts(testDirectory, 'Test').addAccounts(
               'Account',
