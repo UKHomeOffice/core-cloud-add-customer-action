@@ -31,12 +31,13 @@ export const Groups = (folder_path: string): GroupsAction => {
   }
 
   return {
-    addGroup: () => {
+    addGroup: (groupName: string, customerName: string) => {
+      parsedGroups.push(new Group(groupName, customerName))
       writeFile()
     }
   }
 }
 
 export type GroupsAction = {
-  addGroup(): void
+  addGroup(groupName: string, customerName: string): void
 }

@@ -66,12 +66,15 @@ describe('groups.ts', () => {
     )
   })
 
-  it('successfully save group file', async () => {
+  it('successfully add group and save file', async () => {
     await testWithFiles(
       [{ from: emptyGroupsFilePath, to: outputGroupsFilePath }],
       async ([groupFile]) => {
         expect(() => {
-          Groups(outputTestDirectory).addGroup()
+          Groups(outputTestDirectory).addGroup(
+            'FoundryPowerAccessUserCUSTOMERID',
+            'CUSTOMERID'
+          )
         }).not.toThrow()
 
         expect(infoMock).toHaveBeenCalledWith(
@@ -79,10 +82,10 @@ describe('groups.ts', () => {
         )
 
         expect(infoMock).toHaveBeenCalledWith(
-          `0 groups written to file '${groupFile}'`
+          `1 groups written to file '${groupFile}'`
         )
 
-        expect(compareTwoFiles(emptyGroupsFilePath, groupFile)).toBe(true)
+        expect(compareTwoFiles(groupFile, expectedGroupsFilePath)).toBe(true)
       }
     )
   })
