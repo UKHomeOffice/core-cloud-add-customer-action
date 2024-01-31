@@ -1,10 +1,10 @@
-import { parse } from 'yaml'
-import { readFileSync } from 'fs'
+import { parse, stringify } from 'yaml'
+import { readFileSync, writeFileSync } from 'fs'
 import path from 'node:path'
 import { Group } from '../types/group'
 import * as core from '@actions/core'
 
-export const Groups = (folder_path: string): Record<string, never> => {
+export const Groups = (folder_path: string): GroupsAction => {
   const file_path = path.join(folder_path, 'terraform', 'groups.yaml')
 
   let parsedGroups: Group[]
@@ -16,5 +16,27 @@ export const Groups = (folder_path: string): Record<string, never> => {
 
   core.info(`${parsedGroups.length} groups loaded from file '${file_path}'`)
 
-  return {}
+  const writeFile = (): void => {
+    try {
+      core.info(`${parsedGroups.length} groups written to file '${file_path}'`)
+
+      writeFileSync(
+        file_path,
+        stringify(parsedGroups, { collectionStyle: 'block' }),
+        'utf8'
+      )
+    } catch (error: unknown) {
+      throw new Error(`Error writing assignments to file '${file_path}'`)
+    }
+  }
+
+  return {
+    addGroup: () => {
+      writeFile()
+    }
+  }
+}
+
+export type GroupsAction = {
+  addGroup(): void
 }

@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { testWithFiles } from '../utils'
+import { compareTwoFiles, testWithFiles } from '../utils'
 import { Groups } from '../../src/terraform/groups'
 import fs from 'fs'
 import * as core from '@actions/core'
@@ -62,6 +62,27 @@ describe('groups.ts', () => {
         expect(infoMock).toHaveBeenCalledWith(
           `1 groups loaded from file '${groupFile}'`
         )
+      }
+    )
+  })
+
+  it('successfully save group file', async () => {
+    await testWithFiles(
+      [{ from: emptyGroupsFilePath, to: outputGroupsFilePath }],
+      async ([groupFile]) => {
+        expect(() => {
+          Groups(outputTestDirectory).addGroup()
+        }).not.toThrow()
+
+        expect(infoMock).toHaveBeenCalledWith(
+          `0 groups loaded from file '${groupFile}'`
+        )
+
+        expect(infoMock).toHaveBeenCalledWith(
+          `0 groups written to file '${groupFile}'`
+        )
+
+        expect(compareTwoFiles(emptyGroupsFilePath, groupFile)).toBe(true)
       }
     )
   })
