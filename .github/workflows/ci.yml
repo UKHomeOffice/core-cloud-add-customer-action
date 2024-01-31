@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      FOLDER_PATH: __tests__/files/tmp
+      FOLDER_PATH: __tests__/files/tmp/
       ACCOUNTS_FILE_PATH: __tests__/files/tmp/accounts-config.yaml
       IAM_FILE_PATH: __tests__/files/tmp/iam-config.yaml
 
@@ -61,9 +61,11 @@ jobs:
           EMPTY_ACCOUNTS_FILE_PATH: __tests__/files/account/empty.yaml
           EMPTY_IAM_FILE_PATH: __tests__/files/iam/empty.yaml
         run: |
-          mkdir -p "$(dirname ${{ env.FOLDER_PATH }})" 
+          mkdir -p ${{ env.FOLDER_PATH }}
           cp ${{ env.EMPTY_ACCOUNTS_FILE_PATH }} ${{ env.ACCOUNTS_FILE_PATH }}
           cp ${{ env.EMPTY_IAM_FILE_PATH }} ${{ env.IAM_FILE_PATH }}
+          git add ${{ env.FOLDER_PATH }}/*
+          git -c user.name='Dummy' -c user.email='dummy@example.com' commit --all -m "Diff Dummy"
 
       - name: Test Local Action
         id: test-action
