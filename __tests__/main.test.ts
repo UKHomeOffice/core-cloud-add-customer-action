@@ -52,8 +52,8 @@ describe('action', () => {
     }
   })
 
-  it('adds three new accounts', () => {
-    testWithFiles(
+  it('adds three new accounts', async () => {
+    await testWithFiles(
       [
         {
           from: '__tests__/files/account/empty.yaml',
@@ -159,8 +159,8 @@ describe('action', () => {
     )
   })
 
-  it('sets a failed status on missing account input file', () => {
-    testWithFiles([], async () => {
+  it('sets a failed status on missing account input file', async () => {
+    await testWithFiles([], async () => {
       getInputMock.mockImplementation((name: string): string => {
         switch (name) {
           case 'folder_path':
@@ -189,7 +189,7 @@ describe('action', () => {
   })
 
   it('sets a failed status on missing iam input file', async () => {
-    testWithFiles(
+    await testWithFiles(
       [
         {
           from: '__tests__/files/account/empty.yaml',
@@ -235,8 +235,8 @@ describe('action', () => {
     )
   })
 
-  it('sets a failed status on invalid yaml account file', () => {
-    testWithFiles(
+  it('sets a failed status on invalid yaml account file', async () => {
+    await testWithFiles(
       [
         {
           from: '__tests__/files/invalid.yaml',
@@ -273,8 +273,8 @@ describe('action', () => {
     )
   })
 
-  it('sets a failed status on invalid yaml iam file', () => {
-    testWithFiles(
+  it('sets a failed status on invalid yaml iam file', async () => {
+    await testWithFiles(
       [
         {
           from: '__tests__/files/account/empty.yaml',
