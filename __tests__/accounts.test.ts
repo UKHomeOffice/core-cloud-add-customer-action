@@ -1,5 +1,5 @@
 /**
- * Unit tests for src/parser.ts
+ * Unit tests for src/workloadaccounts.ts
  */
 
 import { expect } from '@jest/globals'
@@ -7,92 +7,190 @@ import { expect } from '@jest/globals'
 import * as core from '@actions/core'
 import fs from 'fs'
 
-import { compareTwoFiles } from './utils'
-import { WorkloadAccounts } from '../src/workloadaccounts'
+import { compareTwoFiles, testWithFiles } from './utils'
+import { WorkloadAccounts, WorkloadAccount } from '../src/workloadaccounts'
+import path from 'node:path'
 
-let infoMock: jest.SpyInstance
+describe('workloadaccounts.test.ts', () => {
+  describe('getOrganisationalUnits', () => {
+    const testDirectory = `__tests__/files/tmp-${new Date().getTime()}`
+    const expectedFilePath = path.join(testDirectory, 'accounts-config.yaml')
 
-describe('accounts.test.ts', () => {
-  let testFilePath: string
+    let infoMock: jest.SpyInstance
 
-  beforeEach(() => {
-    jest.clearAllMocks()
+    beforeAll(() => {
+      if (!fs.existsSync(testDirectory)) {
+        fs.mkdirSync(testDirectory)
+      }
+    })
 
-    infoMock = jest.spyOn(core, 'info').mockImplementation()
+    beforeEach(() => {
+      jest.clearAllMocks()
 
-    testFilePath = `./__tests__/files/test-${Date.now()}.yaml`
-    fs.copyFileSync('./__tests__/files/empty.yaml', testFilePath)
-  })
+      infoMock = jest.spyOn(core, 'info').mockImplementation()
+    })
 
-  afterEach(() => {
-    if (fs.existsSync(testFilePath)) {
-      fs.unlinkSync(testFilePath)
-    }
-  })
+    afterAll(() => {
+      if (fs.existsSync(testDirectory)) {
+        fs.rmSync(testDirectory, { recursive: true, force: true })
+      }
+    })
 
-  it('parses accounts successfully with one workload account present', async () => {
-    const filePath = './__tests__/files/valid.yaml'
+    it('parses accounts successfully with one workload account present', () => {
+      testWithFiles(
+        [
+          {
+            from: '__tests__/files/account/valid.yaml',
+            to: expectedFilePath
+          }
+        ],
+        async () => {
+          expect(() => {
+            WorkloadAccounts(testDirectory, 'Dev,Test,Prod')
+          }).not.toThrow()
 
-    expect(() => {
-      WorkloadAccounts(filePath, 'Dev,Test,Prod')
-    }).not.toThrow()
-
-    expect(infoMock).toHaveBeenCalledWith(
-      `1 workload accounts loaded from file '${filePath}'`
-    )
-  })
-
-  it('parses accounts successfully with no workload account present', async () => {
-    const filePath = './__tests__/files/empty.yaml'
-
-    expect(() => {
-      WorkloadAccounts(filePath, 'Dev,Test,Prod')
-    }).not.toThrow()
-
-    expect(infoMock).toHaveBeenCalledWith(
-      `0 workload accounts loaded from file '${filePath}'`
-    )
-  })
-
-  it('successfully add new workload account', async () => {
-    expect(() => {
-      WorkloadAccounts(testFilePath, 'Test').addAccounts(
-        'Account',
-        'user@example.com'
+          expect(infoMock).toHaveBeenCalledWith(
+            `1 workload accounts loaded from file '${expectedFilePath}'`
+          )
+        }
       )
-    }).not.toThrow()
+    })
 
-    expect(infoMock).toHaveBeenNthCalledWith(
-      1,
-      `0 workload accounts loaded from file '${testFilePath}'`
-    )
-    expect(infoMock).toHaveBeenNthCalledWith(
-      2,
-      `1 workload accounts written to file '${testFilePath}'`
-    )
-    expect(compareTwoFiles(testFilePath, './__tests__/files/valid.yaml')).toBe(
-      true
-    )
-  })
+    it('parses accounts successfully with no workload account present', async () => {
+      testWithFiles(
+        [{ from: '__tests__/files/account/empty.yaml', to: expectedFilePath }],
+        async () => {
+          expect(() => {
+            WorkloadAccounts(testDirectory, 'Dev,Test,Prod')
+          }).not.toThrow()
 
-  it('throws an error if an invalid file is provided', async () => {
-    expect(() => {
-      WorkloadAccounts('./__tests__/files/invalid.yaml', 'Test')
-    }).toThrow()
-  })
-
-  it('throws an error if the file cannot be found', async () => {
-    expect(() => {
-      WorkloadAccounts('./__tests__/files/_.yaml', 'Test')
-    }).toThrow()
-  })
-
-  it('throws an error when account email already exists', async () => {
-    expect(() => {
-      WorkloadAccounts('./__tests__/files/valid.yaml', 'Test').addAccounts(
-        'Account',
-        'user@example.com'
+          expect(infoMock).toHaveBeenCalledWith(
+            `0 workload accounts loaded from file '${expectedFilePath}'`
+          )
+        }
       )
-    }).toThrow()
+    })
+
+    it('successfully add new workload account', async () => {
+      testWithFiles(
+        [{ from: '__tests__/files/account/empty.yaml', to: expectedFilePath }],
+        async () => {
+          expect(() => {
+            WorkloadAccounts(testDirectory, 'Test').addAccounts(
+              'Account',
+              'user@example.com'
+            )
+          }).not.toThrow()
+
+          expect(infoMock).toHaveBeenNthCalledWith(
+            1,
+            `0 workload accounts loaded from file '${expectedFilePath}'`
+          )
+          expect(infoMock).toHaveBeenNthCalledWith(
+            2,
+            `1 workload accounts written to file '${expectedFilePath}'`
+          )
+          expect(
+            compareTwoFiles(
+              expectedFilePath,
+              '__tests__/files/account/valid.yaml'
+            )
+          ).toBe(true)
+        }
+      )
+    })
+
+    it('throws an error if an invalid file is provided', async () => {
+      testWithFiles(
+        [{ from: '__tests__/files/invalid.yaml', to: expectedFilePath }],
+        async () => {
+          expect(() => {
+            WorkloadAccounts(testDirectory, 'Test')
+          }).toThrow()
+        }
+      )
+    })
+
+    it('throws an error if the file cannot be found', async () => {
+      expect(() => {
+        WorkloadAccounts(testDirectory, 'Test')
+      }).toThrow()
+    })
+
+    it('throws an error when account email already exists', async () => {
+      testWithFiles(
+        [{ from: '__tests__/files/account/valid.yaml', to: expectedFilePath }],
+        async () => {
+          expect(() => {
+            WorkloadAccounts(testDirectory, 'Test').addAccounts(
+              'Account',
+              'user@example.com'
+            )
+          }).toThrow()
+        }
+      )
+    })
+  })
+
+  describe('types.ts', () => {
+    it('creates WorkloadAccount customer correctly from lower', async () => {
+      const customerId = 'projectname'
+      const orgUnitName = 'dev'
+
+      const account = new WorkloadAccount(customerId, '', orgUnitName)
+
+      expect(account.getName()).toBe('ProjectnameDev')
+    })
+    it('creates WorkloadAccount customer correctly from upper', async () => {
+      const customerId = 'PROJECTNAME'
+      const orgUnitName = 'DEV'
+
+      const account = new WorkloadAccount(customerId, '', orgUnitName)
+
+      expect(account.getName()).toBe('PROJECTNAMEDev')
+    })
+    it('creates WorkloadAccount description correctly lower', async () => {
+      const customerId = 'projectname'
+      const orgUnitName = 'dev'
+
+      const account = new WorkloadAccount(customerId, '', orgUnitName)
+
+      expect(account.getDescription()).toBe(`The Projectname Dev Account`)
+    })
+    it('creates WorkloadAccount description correctly upper', async () => {
+      const customerId = 'PROJECTNAME'
+      const orgUnitName = 'DEV'
+
+      const account = new WorkloadAccount(customerId, '', orgUnitName)
+
+      expect(account.getDescription()).toBe(`The Projectname Dev Account`)
+    })
+    it('creates WorkloadAccount email correctly lower', async () => {
+      const email = 'user@example.com'
+      const customerId = 'projectname'
+      const orgUnitName = 'dev'
+
+      const account = new WorkloadAccount(customerId, email, orgUnitName)
+
+      expect(account.getEmail()).toBe(`user+projectname-dev@example.com`)
+    })
+    it('creates WorkloadAccount email correctly upper', async () => {
+      const email = 'USER@EXAMPLE.COM'
+      const customerId = 'PROJECTNAME'
+      const orgUnitName = 'DEV'
+
+      const account = new WorkloadAccount(customerId, email, orgUnitName)
+
+      expect(account.getEmail()).toBe(`user+projectname-dev@example.com`)
+    })
+    it('throws error when email prefix greater than 64 length', async () => {
+      const email = `${'x'.repeat(61)}@EXAMPLE.com`
+      const customerId = 'PROJECTNAME'
+      const orgUnitName = 'DEV'
+      // Result prefix is 65 characters, from {prefix}{+customerId-orgUnitName}
+      expect(
+        () => new WorkloadAccount(email, customerId, orgUnitName)
+      ).toThrow()
+    })
   })
 })

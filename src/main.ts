@@ -2,6 +2,7 @@ import { getActionInputs } from './helpers'
 import { ActionInput } from './types'
 import * as core from '@actions/core'
 import { WorkloadAccounts } from './workloadaccounts'
+import { IdentityCenterAssignments } from './identitycenterassignment'
 
 /**
  * The main function for the action.
@@ -11,9 +12,19 @@ export async function run(): Promise<void> {
   try {
     const inputs: ActionInput = getActionInputs()
 
-    WorkloadAccounts(inputs.file_path, inputs.organisational_units).addAccounts(
+    const accounts = WorkloadAccounts(
+      inputs.folder_path,
+      inputs.organisational_units
+    ).addAccounts(inputs.customer_id, inputs.spoc_email)
+
+    if (accounts.length === 0) {
+      core.setFailed('No workload accounts added')
+      return
+    }
+
+    IdentityCenterAssignments(inputs.folder_path).addAssignments(
       inputs.customer_id,
-      inputs.spoc_email
+      accounts
     )
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)

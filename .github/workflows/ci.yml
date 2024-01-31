@@ -47,21 +47,38 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      FILE_PATH: __tests__/files/empty.yaml
+      FOLDER_PATH: __tests__/files/tmp/
+      ACCOUNTS_FILE_PATH: __tests__/files/tmp/accounts-config.yaml
+      IAM_FILE_PATH: __tests__/files/tmp/iam-config.yaml
 
     steps:
       - name: Checkout
         id: checkout
         uses: actions/checkout@v4
 
+      - name: Setup Files
+        env:
+          EMPTY_ACCOUNTS_FILE_PATH: __tests__/files/account/empty.yaml
+          EMPTY_IAM_FILE_PATH: __tests__/files/iam/empty.yaml
+        run: |
+          mkdir -p ${{ env.FOLDER_PATH }}
+          cp ${{ env.EMPTY_ACCOUNTS_FILE_PATH }} ${{ env.ACCOUNTS_FILE_PATH }}
+          cp ${{ env.EMPTY_IAM_FILE_PATH }} ${{ env.IAM_FILE_PATH }}
+          git add ${{ env.FOLDER_PATH }}/*
+          git -c user.name='Dummy' -c user.email='dummy@example.com' commit --all -m "Diff Dummy"
+
       - name: Test Local Action
         id: test-action
         uses: ./
         with:
-          file_path: ${{ env.FILE_PATH }}
+          folder_path: ${{ env.FOLDER_PATH }}
           customer_id: test
           spoc_email: test@example.com
           organisational_units: test
 
       - name: Check diff output
-        run:  git diff --name-only ${{ env.FILE_PATH }} | grep ${{ env.FILE_PATH }} || exit 1
+        run: |
+          git diff --name-only ${{ env.ACCOUNTS_FILE_PATH }} \
+            | grep ${{ env.ACCOUNTS_FILE_PATH }} || exit 1
+          git diff --name-only ${{ env.IAM_FILE_PATH }} \
+            | grep ${{ env.IAM_FILE_PATH }} || exit 1

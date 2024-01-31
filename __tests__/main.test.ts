@@ -9,7 +9,8 @@
 import * as core from '@actions/core'
 import * as main from '../src/main'
 import * as fs from 'fs'
-import { compareTwoFiles } from './utils'
+import { compareTwoFiles, testWithFiles } from './utils'
+import * as path from 'node:path'
 
 // Mock the action's main function
 const runMock = jest.spyOn(main, 'run')
@@ -22,7 +23,18 @@ let getInputMock: jest.SpyInstance
 let setFailedMock: jest.SpyInstance
 
 describe('action', () => {
-  let testFilePath: string
+  const testDirectory = `__tests__/files/tmp-${new Date().getTime()}`
+  const testAccountFile = path.join(testDirectory, 'accounts-config.yaml')
+  const testIamFile = path.join(testDirectory, 'iam-config.yaml')
+
+  const expectedAccountFilePath = '__tests__/files/account/expected.yaml'
+  const expectedIamFilePath = '__tests__/files/iam/expected.yaml'
+
+  beforeAll(() => {
+    if (!fs.existsSync(testDirectory)) {
+      fs.mkdirSync(testDirectory)
+    }
+  })
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -32,145 +44,273 @@ describe('action', () => {
     errorMock = jest.spyOn(core, 'error').mockImplementation()
     getInputMock = jest.spyOn(core, 'getInput').mockImplementation()
     setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation()
-
-    // copy the './__tests__/files/empty.yaml' for testing
-    testFilePath = `./__tests__/files/test-${Date.now()}.yaml`
-    fs.copyFileSync('./__tests__/files/empty.yaml', testFilePath)
   })
 
-  afterEach(() => {
-    if (fs.existsSync(testFilePath)) {
-      fs.unlinkSync(testFilePath)
+  afterAll(() => {
+    if (fs.existsSync(testDirectory)) {
+      fs.rmSync(testDirectory, { recursive: true, force: true })
     }
   })
 
-  it('adds three new accounts', async () => {
-    const expectedFilePath = './__tests__/files/expected.yaml'
+  it('adds three new accounts', () => {
+    testWithFiles(
+      [
+        {
+          from: '__tests__/files/account/empty.yaml',
+          to: testAccountFile
+        },
+        {
+          from: '__tests__/files/iam/empty.yaml',
+          to: testIamFile
+        }
+      ],
+      async ([accountFile, iamFile]) => {
+        getInputMock.mockImplementation((name: string): string => {
+          switch (name) {
+            case 'folder_path':
+              return testDirectory
+            case 'customer_id':
+              return 'CUSTOMERID'
+            case 'spoc_email':
+              return 'account@example.com'
+            case 'organisational_units':
+              return 'Dev,Test,Prod'
+            default:
+              return ''
+          }
+        })
 
-    // Set the action's inputs as return values from core.getInput()
-    getInputMock.mockImplementation((name: string): string => {
-      switch (name) {
-        case 'file_path':
-          return testFilePath
-        case 'customer_id':
-          return 'CUSTOMERID'
-        case 'spoc_email':
-          return 'account@example.com'
-        case 'organisational_units':
-          return 'Dev,Test,Prod'
-        default:
-          return ''
+        await main.run()
+
+        expect(runMock).toHaveReturned()
+        expect(infoMock).toHaveBeenNthCalledWith(
+          1,
+          `0 workload accounts loaded from file '${accountFile}'`
+        )
+        expect(infoMock).toHaveBeenNthCalledWith(
+          2,
+          `3 workload accounts written to file '${accountFile}'`
+        )
+        expect(compareTwoFiles(accountFile, expectedAccountFilePath)).toBe(true)
+
+        expect(infoMock).toHaveBeenNthCalledWith(
+          3,
+          `0 assignments loaded from file '${iamFile}'`
+        )
+        expect(infoMock).toHaveBeenNthCalledWith(
+          4,
+          `1 assignments written to file '${iamFile}'`
+        )
+        expect(compareTwoFiles(iamFile, expectedIamFilePath)).toBe(true)
+
+        expect(errorMock).not.toHaveBeenCalled()
       }
-    })
-
-    await main.run()
-
-    expect(runMock).toHaveReturned()
-    expect(infoMock).toHaveBeenNthCalledWith(
-      1,
-      `0 workload accounts loaded from file '${testFilePath}'`
     )
-    expect(infoMock).toHaveBeenNthCalledWith(
-      2,
-      `3 workload accounts written to file '${testFilePath}'`
-    )
-    expect(compareTwoFiles(testFilePath, expectedFilePath)).toBe(true)
-
-    expect(errorMock).not.toHaveBeenCalled()
   })
 
-  it('attempt to add one invalid organisation unit', async () => {
-    const expectedFilePath = './__tests__/files/empty.yaml'
+  it('attempt to add one invalid organisation unit', () => {
+    testWithFiles(
+      [
+        {
+          from: '__tests__/files/account/empty.yaml',
+          to: testAccountFile
+        },
+        {
+          from: '__tests__/files/iam/empty.yaml',
+          to: testIamFile
+        }
+      ],
+      async ([accountFile]) => {
+        // Set the action's inputs as return values from core.getInput()
+        getInputMock.mockImplementation((name: string): string => {
+          switch (name) {
+            case 'folder_path':
+              return testDirectory
+            case 'customer_id':
+              return 'CUSTOMERID'
+            case 'spoc_email':
+              return 'account@example.com'
+            case 'organisational_units':
+              return 'INVALID'
+            default:
+              return ''
+          }
+        })
 
-    // Set the action's inputs as return values from core.getInput()
-    getInputMock.mockImplementation((name: string): string => {
-      switch (name) {
-        case 'file_path':
-          return testFilePath
-        case 'customer_id':
-          return 'CUSTOMERID'
-        case 'spoc_email':
-          return 'account@example.com'
-        case 'organisational_units':
-          return 'INVALID'
-        default:
-          return ''
+        await main.run()
+
+        expect(runMock).toHaveReturned()
+        expect(infoMock).toHaveBeenNthCalledWith(
+          1,
+          `0 workload accounts loaded from file '${accountFile}'`
+        )
+        expect(warningMock).toHaveBeenNthCalledWith(
+          1,
+          `Invalid environment string: INVALID`
+        )
+        expect(setFailedMock).toHaveBeenCalledWith(`No workload accounts added`)
+
+        expect(compareTwoFiles(accountFile, expectedAccountFilePath)).toBe(
+          false
+        )
+
+        expect(errorMock).not.toHaveBeenCalled()
       }
-    })
-
-    await main.run()
-
-    expect(runMock).toHaveReturned()
-    expect(infoMock).toHaveBeenNthCalledWith(
-      1,
-      `0 workload accounts loaded from file '${testFilePath}'`
     )
-    expect(infoMock).toHaveBeenNthCalledWith(
-      2,
-      `0 workload accounts written to file '${testFilePath}'`
-    )
-    expect(warningMock).toHaveBeenNthCalledWith(
-      1,
-      `Invalid environment string: INVALID`
-    )
-    expect(compareTwoFiles(testFilePath, expectedFilePath)).toBe(true)
-
-    expect(errorMock).not.toHaveBeenCalled()
   })
 
-  it('sets a failed status on missing input file', async () => {
-    // Set the action's inputs as return values from core.getInput()
-    getInputMock.mockImplementation((name: string): string => {
-      switch (name) {
-        case 'file_path':
-          return './__tests__/files/_.yaml'
-        case 'customer_id':
-          return 'CUSTOMERID'
-        case 'spoc_email':
-          return 'SPOC_EMAIL'
-        case 'organisational_units':
-          return 'Dev,Test,Prod'
-        default:
-          return ''
-      }
+  it('sets a failed status on missing account input file', () => {
+    testWithFiles([], async () => {
+      getInputMock.mockImplementation((name: string): string => {
+        switch (name) {
+          case 'folder_path':
+            return testDirectory
+          case 'customer_id':
+            return 'CUSTOMERID'
+          case 'spoc_email':
+            return 'account@example.com'
+          case 'organisational_units':
+            return 'Dev,Test,Prod'
+          default:
+            return ''
+        }
+      })
+
+      await main.run()
+      expect(runMock).toHaveReturned()
+
+      // Verify error message is propagated to setFailed()
+      expect(setFailedMock).toHaveBeenCalledWith(
+        `Error reading workload accounts from file '${path.join(testDirectory, 'accounts-config.yaml')}'`
+      )
+
+      expect(errorMock).not.toHaveBeenCalled()
     })
-
-    await main.run()
-    expect(runMock).toHaveReturned()
-
-    // Verify error message is propagated to setFailed()
-    expect(setFailedMock).toHaveBeenCalledWith(
-      `Error reading workload accounts from file './__tests__/files/_.yaml'`
-    )
-
-    expect(errorMock).not.toHaveBeenCalled()
   })
 
-  it('sets a failed status on invalid input file', async () => {
-    // Set the action's inputs as return values from core.getInput()
-    getInputMock.mockImplementation((name: string): string => {
-      switch (name) {
-        case 'file_path':
-          return './__tests__/files/invalid.yaml'
-        case 'customer_id':
-          return 'CUSTOMERID'
-        case 'spoc_email':
-          return 'SPOC_EMAIL'
-        case 'organisational_units':
-          return 'Dev,Test,Prod'
-        default:
-          return ''
+  it('sets a failed status on missing iam input file', async () => {
+    testWithFiles(
+      [
+        {
+          from: '__tests__/files/account/empty.yaml',
+          to: testAccountFile
+        }
+      ],
+      async ([accountFile]) => {
+        getInputMock.mockImplementation((name: string): string => {
+          switch (name) {
+            case 'folder_path':
+              return testDirectory
+            case 'customer_id':
+              return 'CUSTOMERID'
+            case 'spoc_email':
+              return 'account@example.com'
+            case 'organisational_units':
+              return 'Dev,Test,Prod'
+            default:
+              return ''
+          }
+        })
+
+        await main.run()
+        expect(runMock).toHaveReturned()
+
+        expect(infoMock).toHaveBeenNthCalledWith(
+          1,
+          `0 workload accounts loaded from file '${accountFile}'`
+        )
+        expect(infoMock).toHaveBeenNthCalledWith(
+          2,
+          `3 workload accounts written to file '${accountFile}'`
+        )
+        expect(compareTwoFiles(accountFile, expectedAccountFilePath)).toBe(true)
+
+        // Verify error message is propagated to setFailed()
+        expect(setFailedMock).toHaveBeenCalledWith(
+          `Error reading assignments from file '${path.join(testDirectory, 'iam-config.yaml')}'`
+        )
+
+        expect(errorMock).not.toHaveBeenCalled()
       }
-    })
-
-    await main.run()
-    expect(runMock).toHaveReturned()
-
-    // Verify error message is propagated to setFailed()
-    expect(setFailedMock).toHaveBeenCalledWith(
-      `Error parsing workload accounts from file './__tests__/files/invalid.yaml', accounts section is null or undefined`
     )
+  })
 
-    expect(errorMock).not.toHaveBeenCalled()
+  it('sets a failed status on invalid yaml account file', () => {
+    testWithFiles(
+      [
+        {
+          from: '__tests__/files/invalid.yaml',
+          to: testAccountFile
+        }
+      ],
+      async ([accountFile]) => {
+        // Set the action's inputs as return values from core.getInput()
+        getInputMock.mockImplementation((name: string): string => {
+          switch (name) {
+            case 'folder_path':
+              return testDirectory
+            case 'customer_id':
+              return 'CUSTOMERID'
+            case 'spoc_email':
+              return 'account@example.com'
+            case 'organisational_units':
+              return 'Dev,Test,Prod'
+            default:
+              return ''
+          }
+        })
+
+        await main.run()
+        expect(runMock).toHaveReturned()
+
+        // Verify error message is propagated to setFailed()
+        expect(setFailedMock).toHaveBeenCalledWith(
+          `Error parsing workload accounts from file '${accountFile}', accounts section is not present`
+        )
+
+        expect(errorMock).not.toHaveBeenCalled()
+      }
+    )
+  })
+
+  it('sets a failed status on invalid yaml iam file', () => {
+    testWithFiles(
+      [
+        {
+          from: '__tests__/files/account/empty.yaml',
+          to: testAccountFile
+        },
+        {
+          from: '__tests__/files/invalid.yaml',
+          to: testIamFile
+        }
+      ],
+      async ([, iamFile]) => {
+        getInputMock.mockImplementation((name: string): string => {
+          switch (name) {
+            case 'folder_path':
+              return testDirectory
+            case 'customer_id':
+              return 'CUSTOMERID'
+            case 'spoc_email':
+              return 'account@example.com'
+            case 'organisational_units':
+              return 'Dev,Test,Prod'
+            default:
+              return ''
+          }
+        })
+
+        await main.run()
+        expect(runMock).toHaveReturned()
+
+        // Verify error message is propagated to setFailed()
+        expect(setFailedMock).toHaveBeenCalledWith(
+          `Error parsing assignments from file '${iamFile}', assignments section is not present`
+        )
+
+        expect(errorMock).not.toHaveBeenCalled()
+      }
+    )
   })
 })

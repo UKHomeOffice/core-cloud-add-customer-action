@@ -3,7 +3,7 @@ import * as core from '@actions/core'
 
 export const getActionInputs = (): ActionInput => {
   const variables: ActionInputParam[] = [
-    { name: 'file_path', options: { required: true } },
+    { name: 'folder_path', options: { required: true } },
     { name: 'customer_id', options: { required: true } },
     { name: 'spoc_email', options: { required: true } },
     { name: 'organisational_units', options: { required: true } }

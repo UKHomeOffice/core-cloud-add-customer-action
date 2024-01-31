@@ -2756,7 +2756,7 @@ const types_1 = __nccwpck_require__(5077);
 const core = __importStar(__nccwpck_require__(2186));
 const getActionInputs = () => {
     const variables = [
-        { name: 'file_path', options: { required: true } },
+        { name: 'folder_path', options: { required: true } },
         { name: 'customer_id', options: { required: true } },
         { name: 'spoc_email', options: { required: true } },
         { name: 'organisational_units', options: { required: true } }
@@ -2807,6 +2807,115 @@ exports.capitaliseFirstLetter = capitaliseFirstLetter;
 
 /***/ }),
 
+/***/ 6064:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.IdentityCenterAssignment = exports.IdentityCenterAssignments = void 0;
+const yaml_1 = __nccwpck_require__(4083);
+const fs_1 = __nccwpck_require__(7147);
+const core = __importStar(__nccwpck_require__(2186));
+const helpers_1 = __nccwpck_require__(3015);
+const IdentityCenterAssignments = (folder_path) => {
+    const file_path = `${folder_path}/iam-config.yaml`;
+    let fileParsed;
+    try {
+        fileParsed = (0, yaml_1.parseDocument)((0, fs_1.readFileSync)(file_path, 'utf8'));
+    }
+    catch (error) {
+        throw new Error(`Error reading assignments from file '${file_path}'`);
+    }
+    const identityCenterAssignments = fileParsed.getIn([
+        'identityCenter',
+        'identityCenterAssignments'
+    ]);
+    if (!identityCenterAssignments) {
+        throw new Error(`Error parsing assignments from file '${file_path}', assignments section is not present`);
+    }
+    core.info(`${identityCenterAssignments.items?.length} assignments loaded from file '${file_path}'`);
+    const addAssignment = (customerId, accounts) => {
+        const assignment = new IdentityCenterAssignment(customerId, 'PowerAccessUser', accounts);
+        identityCenterAssignments.items.push(assignment);
+        identityCenterAssignments.flow = false;
+    };
+    const writeAssignments = () => {
+        try {
+            core.info(`${identityCenterAssignments.items?.length} assignments written to file '${file_path}'`);
+            (0, fs_1.writeFileSync)(file_path, fileParsed.toString(), 'utf8');
+        }
+        catch (error) {
+            throw new Error(`Error writing assignments to file '${file_path}'`);
+        }
+    };
+    return {
+        addAssignments(customer_id, accounts) {
+            addAssignment(customer_id, accounts);
+            writeAssignments();
+        }
+    };
+};
+exports.IdentityCenterAssignments = IdentityCenterAssignments;
+class IdentityCenterAssignment extends yaml_1.YAMLMap {
+    constructor(name, permissionSetName, accounts) {
+        super();
+        this.set('name', IdentityCenterAssignment.getName(name));
+        this.set('permissionSetName', permissionSetName);
+        this.set('principals', [
+            new Principal(IdentityCenterAssignment.getGroupName(name, permissionSetName))
+        ]);
+        this.set('deploymentTargets', new DeploymentTarget(accounts.map(account => account.getName())));
+    }
+    static getName = (customerId) => {
+        return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}Assignment`;
+    };
+    static getGroupName = (customerId, permissionSetName) => {
+        return `Foundry${permissionSetName}${(0, helpers_1.capitaliseFirstLetter)(customerId)}`;
+    };
+}
+exports.IdentityCenterAssignment = IdentityCenterAssignment;
+class Principal {
+    type;
+    name;
+    constructor(name) {
+        this.type = 'GROUP';
+        this.name = name;
+    }
+}
+class DeploymentTarget {
+    accounts;
+    constructor(accounts) {
+        this.accounts = accounts;
+    }
+}
+
+
+/***/ }),
+
 /***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -2840,6 +2949,7 @@ exports.run = void 0;
 const helpers_1 = __nccwpck_require__(3015);
 const core = __importStar(__nccwpck_require__(2186));
 const workloadaccounts_1 = __nccwpck_require__(5033);
+const identitycenterassignment_1 = __nccwpck_require__(6064);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -2847,7 +2957,12 @@ const workloadaccounts_1 = __nccwpck_require__(5033);
 async function run() {
     try {
         const inputs = (0, helpers_1.getActionInputs)();
-        (0, workloadaccounts_1.WorkloadAccounts)(inputs.file_path, inputs.organisational_units).addAccounts(inputs.customer_id, inputs.spoc_email);
+        const accounts = (0, workloadaccounts_1.WorkloadAccounts)(inputs.folder_path, inputs.organisational_units).addAccounts(inputs.customer_id, inputs.spoc_email);
+        if (accounts.length === 0) {
+            core.setFailed('No workload accounts added');
+            return;
+        }
+        (0, identitycenterassignment_1.IdentityCenterAssignments)(inputs.folder_path).addAssignments(inputs.customer_id, accounts);
     }
     catch (error) {
         if (error instanceof Error)
@@ -2860,44 +2975,18 @@ exports.run = run;
 /***/ }),
 
 /***/ 5077:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.WorkloadAccount = exports.DeploymentEnvironment = void 0;
-const helpers_1 = __nccwpck_require__(3015);
-const yaml_1 = __nccwpck_require__(4083);
+exports.DeploymentEnvironment = void 0;
 var DeploymentEnvironment;
 (function (DeploymentEnvironment) {
     DeploymentEnvironment["dev"] = "Dev";
     DeploymentEnvironment["test"] = "Test";
     DeploymentEnvironment["prod"] = "Prod";
 })(DeploymentEnvironment || (exports.DeploymentEnvironment = DeploymentEnvironment = {}));
-class WorkloadAccount extends yaml_1.YAMLMap {
-    constructor(name, description, email, orgUnit) {
-        super();
-        this.set('name', name);
-        this.set('description', description);
-        this.set('email', email);
-        this.set('organizationalUnit', orgUnit);
-    }
-    static getCustomerName = (customerId, orgUnitName) => {
-        return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}${(0, helpers_1.toSentenceCase)(orgUnitName)}`;
-    };
-    static getDescription = (customerId, orgUnitName) => {
-        return `The ${(0, helpers_1.toSentenceCase)(customerId)} ${(0, helpers_1.toSentenceCase)(orgUnitName)} Account`;
-    };
-    static getEmail = (email, customerId, orgUnitName) => {
-        const emailSplit = email.split('@');
-        const emailPrefix = `${emailSplit[0]}+${customerId}-${orgUnitName}`;
-        if (emailPrefix.length > 64) {
-            throw new Error(`Email prefix '${emailPrefix}' is too long, must be 64 characters or less`);
-        }
-        return `${emailPrefix}@${emailSplit[1]}`.toLowerCase();
-    };
-}
-exports.WorkloadAccount = WorkloadAccount;
 
 
 /***/ }),
@@ -2931,13 +3020,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.WorkloadAccounts = void 0;
+exports.WorkloadAccount = exports.WorkloadAccounts = void 0;
 const helpers_1 = __nccwpck_require__(3015);
-const types_1 = __nccwpck_require__(5077);
 const yaml_1 = __nccwpck_require__(4083);
 const fs_1 = __nccwpck_require__(7147);
 const core = __importStar(__nccwpck_require__(2186));
-const WorkloadAccounts = (file_path, organisation_units) => {
+const path = __importStar(__nccwpck_require__(1017));
+const WorkloadAccounts = (folder_path, organisation_units) => {
+    const file_path = path.join(folder_path, 'accounts-config.yaml');
     const deploymentEnvironments = (0, helpers_1.getOrganisationalUnits)(organisation_units);
     let fileParsed;
     try {
@@ -2948,18 +3038,19 @@ const WorkloadAccounts = (file_path, organisation_units) => {
     }
     const workloadAccounts = fileParsed.get('workloadAccounts');
     if (!workloadAccounts) {
-        throw new Error(`Error parsing workload accounts from file '${file_path}', accounts section is null or undefined`);
+        throw new Error(`Error parsing workload accounts from file '${file_path}', accounts section is not present`);
     }
     core.info(`${workloadAccounts.items?.length} workload accounts loaded from file '${file_path}'`);
     const addWorkloadAccount = (customerId, email, organisationUnit) => {
-        const workloadEmail = types_1.WorkloadAccount.getEmail(email, customerId, organisationUnit);
-        const conflictingAccount = workloadAccounts.items.find(account => account.get('email') === workloadEmail);
+        const workloadAccount = new WorkloadAccount(customerId, email, organisationUnit);
+        const conflictingAccount = workloadAccounts.items.find(account => account.get('email') === workloadAccount.getEmail());
         if (conflictingAccount) {
             throw new Error(`Email already exists within file ${file_path}: ${conflictingAccount.toString()}`);
         }
-        workloadAccounts.items.push(new types_1.WorkloadAccount(types_1.WorkloadAccount.getCustomerName(customerId, organisationUnit), types_1.WorkloadAccount.getDescription(customerId, organisationUnit), workloadEmail, organisationUnit));
+        workloadAccounts.items.push(workloadAccount);
         // This ensures that the array is mapped correctly if initially empty.
         workloadAccounts.flow = false;
+        return workloadAccount;
     };
     const writeAccounts = () => {
         try {
@@ -2972,14 +3063,51 @@ const WorkloadAccounts = (file_path, organisation_units) => {
     };
     return {
         addAccounts(customer_id, spoc_email) {
-            for (const orgUnitName of deploymentEnvironments) {
-                addWorkloadAccount(customer_id, spoc_email, orgUnitName);
+            const newWorkloadAccounts = deploymentEnvironments.map(orgUnitName => {
+                return addWorkloadAccount(customer_id, spoc_email, orgUnitName);
+            });
+            if (newWorkloadAccounts.length === 0) {
+                return newWorkloadAccounts;
             }
             writeAccounts();
+            return newWorkloadAccounts;
         }
     };
 };
 exports.WorkloadAccounts = WorkloadAccounts;
+class WorkloadAccount extends yaml_1.YAMLMap {
+    constructor(name, email, orgUnit) {
+        super();
+        this.set('name', WorkloadAccount.getCustomerName(name, orgUnit));
+        this.set('description', WorkloadAccount.getDescription(name, orgUnit));
+        this.set('email', WorkloadAccount.getEmail(email, name, orgUnit));
+        this.set('organizationalUnit', orgUnit);
+    }
+    getName() {
+        return this.get('name');
+    }
+    getDescription() {
+        return this.get('description');
+    }
+    getEmail() {
+        return this.get('email');
+    }
+    static getCustomerName = (customerId, orgUnitName) => {
+        return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}${(0, helpers_1.toSentenceCase)(orgUnitName)}`;
+    };
+    static getDescription = (customerId, orgUnitName) => {
+        return `The ${(0, helpers_1.toSentenceCase)(customerId)} ${(0, helpers_1.toSentenceCase)(orgUnitName)} Account`;
+    };
+    static getEmail = (email, customerId, orgUnitName) => {
+        const emailSplit = email.split('@');
+        const emailPrefix = `${emailSplit[0]}+${customerId}-${orgUnitName}`;
+        if (emailPrefix.length > 64) {
+            throw new Error(`Email prefix '${emailPrefix}' is too long, must be 64 characters or less`);
+        }
+        return `${emailPrefix}@${emailSplit[1]}`.toLowerCase();
+    };
+}
+exports.WorkloadAccount = WorkloadAccount;
 
 
 /***/ }),
