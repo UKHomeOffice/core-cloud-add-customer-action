@@ -14,6 +14,10 @@ export const Groups = (folder_path: string): GroupsAction => {
     throw new Error(`Error reading groups from file '${file_path}'`)
   }
 
+  if (!Array.isArray(parsedGroups)) {
+    throw new Error(`Error parsing groups from file '${file_path}'`)
+  }
+
   core.info(`${parsedGroups.length} groups loaded from file '${file_path}'`)
 
   const writeFile = (): void => {

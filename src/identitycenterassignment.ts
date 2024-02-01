@@ -34,7 +34,7 @@ export const IdentityCenterAssignments = (
   const addAssignment = (
     customerId: string,
     accounts: WorkloadAccount[]
-  ): void => {
+  ): IdentityCenterAssignment => {
     const assignment = new IdentityCenterAssignment(
       customerId,
       'PowerAccessUser',
@@ -43,6 +43,8 @@ export const IdentityCenterAssignments = (
 
     identityCenterAssignments.items.push(assignment)
     identityCenterAssignments.flow = false
+
+    return assignment
   }
 
   const writeAssignments = (): void => {
@@ -58,20 +60,26 @@ export const IdentityCenterAssignments = (
 
   return {
     addAssignments(customer_id: string, accounts: WorkloadAccount[]) {
-      addAssignment(customer_id, accounts)
+      const assignment = addAssignment(customer_id, accounts)
       writeAssignments()
+      return assignment
     }
   }
 }
 
 export type IdentityCenterAssignmentsAction = {
-  addAssignments(customer_id: string, accounts: WorkloadAccount[]): void
+  addAssignments(
+    customer_id: string,
+    accounts: WorkloadAccount[]
+  ): IdentityCenterAssignment
 }
 
 export class IdentityCenterAssignment extends YAMLMap<
   string,
   string | Principal[] | DeploymentTarget
 > {
+  private readonly groupName: string
+
   constructor(
     name: string,
     permissionSetName: string,
@@ -80,15 +88,21 @@ export class IdentityCenterAssignment extends YAMLMap<
     super()
     this.set('name', IdentityCenterAssignment.getName(name))
     this.set('permissionSetName', permissionSetName)
-    this.set('principals', [
-      new Principal(
-        IdentityCenterAssignment.getGroupName(name, permissionSetName)
-      )
-    ])
+
+    this.groupName = IdentityCenterAssignment.getGroupName(
+      name,
+      permissionSetName
+    )
+    this.set('principals', [new Principal(this.groupName)])
+
     this.set(
       'deploymentTargets',
       new DeploymentTarget(accounts.map(account => account.getName()))
     )
+  }
+
+  getGroupName(): string {
+    return this.groupName
   }
 
   private static getName = (customerId: string): string => {

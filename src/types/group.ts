@@ -1,3 +1,5 @@
+import { capitaliseFirstLetter } from '../helpers'
+
 export class Group {
   name: string
   description: string
@@ -8,6 +10,6 @@ export class Group {
   }
 
   private static getDescription = (customerName: string): string => {
-    return `Foundry Identity Center Group for ${customerName}`
+    return `Foundry Identity Center Group for ${capitaliseFirstLetter(customerName)}`
   }
 }
