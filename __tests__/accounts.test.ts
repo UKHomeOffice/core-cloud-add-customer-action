@@ -36,8 +36,8 @@ describe('workloadaccounts.test.ts', () => {
       }
     })
 
-    it('parses accounts successfully with one workload account present', () => {
-      testWithFiles(
+    it('parses accounts successfully with one workload account present', async () => {
+      await testWithFiles(
         [
           {
             from: '__tests__/files/account/valid.yaml',
@@ -57,7 +57,7 @@ describe('workloadaccounts.test.ts', () => {
     })
 
     it('parses accounts successfully with no workload account present', async () => {
-      testWithFiles(
+      await testWithFiles(
         [{ from: '__tests__/files/account/empty.yaml', to: expectedFilePath }],
         async () => {
           expect(() => {
@@ -72,7 +72,7 @@ describe('workloadaccounts.test.ts', () => {
     })
 
     it('successfully add new workload account', async () => {
-      testWithFiles(
+      await testWithFiles(
         [{ from: '__tests__/files/account/empty.yaml', to: expectedFilePath }],
         async () => {
           expect(() => {
@@ -101,7 +101,7 @@ describe('workloadaccounts.test.ts', () => {
     })
 
     it('throws an error if an invalid file is provided', async () => {
-      testWithFiles(
+      await testWithFiles(
         [{ from: '__tests__/files/invalid.yaml', to: expectedFilePath }],
         async () => {
           expect(() => {
@@ -111,14 +111,14 @@ describe('workloadaccounts.test.ts', () => {
       )
     })
 
-    it('throws an error if the file cannot be found', async () => {
+    it('throws an error if the file cannot be found', () => {
       expect(() => {
         WorkloadAccounts(testDirectory, 'Test')
       }).toThrow()
     })
 
     it('throws an error when account email already exists', async () => {
-      testWithFiles(
+      await testWithFiles(
         [{ from: '__tests__/files/account/valid.yaml', to: expectedFilePath }],
         async () => {
           expect(() => {
@@ -133,7 +133,7 @@ describe('workloadaccounts.test.ts', () => {
   })
 
   describe('types.ts', () => {
-    it('creates WorkloadAccount customer correctly from lower', async () => {
+    it('creates WorkloadAccount customer correctly from lower', () => {
       const customerId = 'projectname'
       const orgUnitName = 'dev'
 
@@ -141,7 +141,8 @@ describe('workloadaccounts.test.ts', () => {
 
       expect(account.getName()).toBe('ProjectnameDev')
     })
-    it('creates WorkloadAccount customer correctly from upper', async () => {
+
+    it('creates WorkloadAccount customer correctly from upper', () => {
       const customerId = 'PROJECTNAME'
       const orgUnitName = 'DEV'
 
@@ -149,7 +150,8 @@ describe('workloadaccounts.test.ts', () => {
 
       expect(account.getName()).toBe('PROJECTNAMEDev')
     })
-    it('creates WorkloadAccount description correctly lower', async () => {
+
+    it('creates WorkloadAccount description correctly lower', () => {
       const customerId = 'projectname'
       const orgUnitName = 'dev'
 
@@ -157,7 +159,8 @@ describe('workloadaccounts.test.ts', () => {
 
       expect(account.getDescription()).toBe(`The Projectname Dev Account`)
     })
-    it('creates WorkloadAccount description correctly upper', async () => {
+
+    it('creates WorkloadAccount description correctly upper', () => {
       const customerId = 'PROJECTNAME'
       const orgUnitName = 'DEV'
 
@@ -165,7 +168,8 @@ describe('workloadaccounts.test.ts', () => {
 
       expect(account.getDescription()).toBe(`The Projectname Dev Account`)
     })
-    it('creates WorkloadAccount email correctly lower', async () => {
+
+    it('creates WorkloadAccount email correctly lower', () => {
       const email = 'user@example.com'
       const customerId = 'projectname'
       const orgUnitName = 'dev'
@@ -174,7 +178,8 @@ describe('workloadaccounts.test.ts', () => {
 
       expect(account.getEmail()).toBe(`user+projectname-dev@example.com`)
     })
-    it('creates WorkloadAccount email correctly upper', async () => {
+
+    it('creates WorkloadAccount email correctly upper', () => {
       const email = 'USER@EXAMPLE.COM'
       const customerId = 'PROJECTNAME'
       const orgUnitName = 'DEV'
@@ -183,7 +188,8 @@ describe('workloadaccounts.test.ts', () => {
 
       expect(account.getEmail()).toBe(`user+projectname-dev@example.com`)
     })
-    it('throws error when email prefix greater than 64 length', async () => {
+
+    it('throws error when email prefix greater than 64 length', () => {
       const email = `${'x'.repeat(61)}@EXAMPLE.com`
       const customerId = 'PROJECTNAME'
       const orgUnitName = 'DEV'

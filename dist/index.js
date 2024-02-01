@@ -2862,6 +2862,7 @@ const IdentityCenterAssignments = (folder_path) => {
         const assignment = new IdentityCenterAssignment(customerId, 'PowerAccessUser', accounts);
         identityCenterAssignments.items.push(assignment);
         identityCenterAssignments.flow = false;
+        return assignment;
     };
     const writeAssignments = () => {
         try {
@@ -2874,21 +2875,25 @@ const IdentityCenterAssignments = (folder_path) => {
     };
     return {
         addAssignments(customer_id, accounts) {
-            addAssignment(customer_id, accounts);
+            const assignment = addAssignment(customer_id, accounts);
             writeAssignments();
+            return assignment;
         }
     };
 };
 exports.IdentityCenterAssignments = IdentityCenterAssignments;
 class IdentityCenterAssignment extends yaml_1.YAMLMap {
+    groupName;
     constructor(name, permissionSetName, accounts) {
         super();
         this.set('name', IdentityCenterAssignment.getName(name));
         this.set('permissionSetName', permissionSetName);
-        this.set('principals', [
-            new Principal(IdentityCenterAssignment.getGroupName(name, permissionSetName))
-        ]);
+        this.groupName = IdentityCenterAssignment.getGroupName(name, permissionSetName);
+        this.set('principals', [new Principal(this.groupName)]);
         this.set('deploymentTargets', new DeploymentTarget(accounts.map(account => account.getName())));
+    }
+    getGroupName() {
+        return this.groupName;
     }
     static getName = (customerId) => {
         return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}Assignment`;
@@ -2950,6 +2955,7 @@ const helpers_1 = __nccwpck_require__(3015);
 const core = __importStar(__nccwpck_require__(2186));
 const workloadaccounts_1 = __nccwpck_require__(5033);
 const identitycenterassignment_1 = __nccwpck_require__(6064);
+const groups_1 = __nccwpck_require__(9648);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -2962,7 +2968,8 @@ async function run() {
             core.setFailed('No workload accounts added');
             return;
         }
-        (0, identitycenterassignment_1.IdentityCenterAssignments)(inputs.folder_path).addAssignments(inputs.customer_id, accounts);
+        const assignments = (0, identitycenterassignment_1.IdentityCenterAssignments)(inputs.folder_path).addAssignments(inputs.customer_id, accounts);
+        (0, groups_1.Groups)(inputs.folder_path).addGroup(assignments.getGroupName(), inputs.customer_id);
     }
     catch (error) {
         if (error instanceof Error)
@@ -2970,6 +2977,78 @@ async function run() {
     }
 }
 exports.run = run;
+
+
+/***/ }),
+
+/***/ 9648:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Groups = void 0;
+const yaml_1 = __nccwpck_require__(4083);
+const fs_1 = __nccwpck_require__(7147);
+const node_path_1 = __importDefault(__nccwpck_require__(9411));
+const group_1 = __nccwpck_require__(8495);
+const core = __importStar(__nccwpck_require__(2186));
+const Groups = (folder_path) => {
+    const file_path = node_path_1.default.join(folder_path, 'terraform', 'groups.yaml');
+    let parsedGroups;
+    try {
+        parsedGroups = (0, yaml_1.parse)((0, fs_1.readFileSync)(file_path, 'utf8')) ?? [];
+    }
+    catch (error) {
+        throw new Error(`Error reading groups from file '${file_path}'`);
+    }
+    if (!Array.isArray(parsedGroups)) {
+        throw new Error(`Error parsing groups from file '${file_path}'`);
+    }
+    core.info(`${parsedGroups.length} groups loaded from file '${file_path}'`);
+    const writeFile = () => {
+        try {
+            core.info(`${parsedGroups.length} groups written to file '${file_path}'`);
+            (0, fs_1.writeFileSync)(file_path, (0, yaml_1.stringify)(parsedGroups, { collectionStyle: 'block' }), 'utf8');
+        }
+        catch (error) {
+            throw new Error(`Error writing assignments to file '${file_path}'`);
+        }
+    };
+    return {
+        addGroup: (groupName, customerName) => {
+            parsedGroups.push(new group_1.Group(groupName, customerName));
+            writeFile();
+        }
+    };
+};
+exports.Groups = Groups;
 
 
 /***/ }),
@@ -2987,6 +3066,30 @@ var DeploymentEnvironment;
     DeploymentEnvironment["test"] = "Test";
     DeploymentEnvironment["prod"] = "Prod";
 })(DeploymentEnvironment || (exports.DeploymentEnvironment = DeploymentEnvironment = {}));
+
+
+/***/ }),
+
+/***/ 8495:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Group = void 0;
+const helpers_1 = __nccwpck_require__(3015);
+class Group {
+    name;
+    description;
+    constructor(name, customerName) {
+        this.name = name;
+        this.description = Group.getDescription(customerName);
+    }
+    static getDescription = (customerName) => {
+        return `Foundry Identity Center Group for ${(0, helpers_1.capitaliseFirstLetter)(customerName)}`;
+    };
+}
+exports.Group = Group;
 
 
 /***/ }),
@@ -3165,6 +3268,14 @@ module.exports = require("https");
 
 "use strict";
 module.exports = require("net");
+
+/***/ }),
+
+/***/ 9411:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:path");
 
 /***/ }),
 

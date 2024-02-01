@@ -30,7 +30,7 @@ describe('identitycenterassignment.test.ts', () => {
   })
 
   it('parses accounts successfully with no workload account present', async () => {
-    testWithFiles(
+    await testWithFiles(
       [{ from: '__tests__/files/iam/empty.yaml', to: expectedFilePath }],
       async () => {
         expect(() => {
@@ -45,7 +45,7 @@ describe('identitycenterassignment.test.ts', () => {
   })
 
   it('successfully add assignment', async () => {
-    testWithFiles(
+    await testWithFiles(
       [{ from: '__tests__/files/iam/empty.yaml', to: expectedFilePath }],
       async () => {
         expect(() => {
@@ -75,7 +75,7 @@ describe('identitycenterassignment.test.ts', () => {
   })
 
   it('throws an error if an invalid file is provided', async () => {
-    testWithFiles(
+    await testWithFiles(
       [{ from: '__tests__/files/invalid.yaml', to: expectedFilePath }],
       async () => {
         expect(() => {

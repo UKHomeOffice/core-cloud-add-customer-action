@@ -3,6 +3,7 @@ import { ActionInput } from './types'
 import * as core from '@actions/core'
 import { WorkloadAccounts } from './workloadaccounts'
 import { IdentityCenterAssignments } from './identitycenterassignment'
+import { Groups } from './terraform/groups'
 
 /**
  * The main function for the action.
@@ -22,9 +23,13 @@ export async function run(): Promise<void> {
       return
     }
 
-    IdentityCenterAssignments(inputs.folder_path).addAssignments(
-      inputs.customer_id,
-      accounts
+    const assignments = IdentityCenterAssignments(
+      inputs.folder_path
+    ).addAssignments(inputs.customer_id, accounts)
+
+    Groups(inputs.folder_path).addGroup(
+      assignments.getGroupName(),
+      inputs.customer_id
     )
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
