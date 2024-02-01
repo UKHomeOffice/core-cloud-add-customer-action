@@ -50,6 +50,7 @@ jobs:
       FOLDER_PATH: __tests__/files/tmp/
       ACCOUNTS_FILE_PATH: __tests__/files/tmp/accounts-config.yaml
       IAM_FILE_PATH: __tests__/files/tmp/iam-config.yaml
+      TERRAFORM_GROUPS_FILE_PATH: __tests__/files/tmp/terraform/groups.yaml
 
     steps:
       - name: Checkout
@@ -60,10 +61,12 @@ jobs:
         env:
           EMPTY_ACCOUNTS_FILE_PATH: __tests__/files/account/empty.yaml
           EMPTY_IAM_FILE_PATH: __tests__/files/iam/empty.yaml
+          EMPTY_TERRAFORM_GROUPS_FILE_PATH: __tests__/terraform/files/groups/empty.yaml
         run: |
-          mkdir -p ${{ env.FOLDER_PATH }}
+          mkdir -p ${{ env.FOLDER_PATH }}/terraform
           cp ${{ env.EMPTY_ACCOUNTS_FILE_PATH }} ${{ env.ACCOUNTS_FILE_PATH }}
           cp ${{ env.EMPTY_IAM_FILE_PATH }} ${{ env.IAM_FILE_PATH }}
+          cp ${{ env.EMPTY_TERRAFORM_GROUPS_FILE_PATH }} ${{ env.TERRAFORM_GROUPS_FILE_PATH }}
           git add ${{ env.FOLDER_PATH }}/*
           git -c user.name='Dummy' -c user.email='dummy@example.com' commit --all -m "Diff Dummy"
 
@@ -78,7 +81,7 @@ jobs:
 
       - name: Check diff output
         run: |
-          git diff --name-only ${{ env.ACCOUNTS_FILE_PATH }} \
-            | grep ${{ env.ACCOUNTS_FILE_PATH }} || exit 1
-          git diff --name-only ${{ env.IAM_FILE_PATH }} \
-            | grep ${{ env.IAM_FILE_PATH }} || exit 1
+          diff=$(git diff --name-only)
+          echo "$diff" | grep ${{ env.ACCOUNTS_FILE_PATH }} || exit 1
+          echo "$diff" | grep ${{ env.IAM_FILE_PATH }} || exit 1
+          echo "$diff" | grep ${{ env.TERRAFORM_GROUPS_FILE_PATH }} || exit 1
