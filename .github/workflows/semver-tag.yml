@@ -3,6 +3,10 @@ on:
   pull_request:
     types: [ closed ]
 
+permissions:
+  contents: write
+  pull-requests: read
+
 jobs:
   semver-tag-repository:
     name: Semver Tag Repository
