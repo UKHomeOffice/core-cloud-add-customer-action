@@ -15,7 +15,7 @@ export enum DeploymentEnvironment {
   dev = 'Dev',
   test = 'Test',
   prod = 'Prod',
-  "dev (isolated)" = 'Dev (Isolated)',
-  "test (isolated)" = 'Test (Isolated)',
-  "prod (isolated)" = 'Prod (Isolated)'
+  'dev (isolated)' = 'Dev (Isolated)',
+  'test (isolated)' = 'Test (Isolated)',
+  'prod (isolated)' = 'Prod (Isolated)'
 }
