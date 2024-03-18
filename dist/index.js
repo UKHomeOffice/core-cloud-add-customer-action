@@ -3065,6 +3065,9 @@ var DeploymentEnvironment;
     DeploymentEnvironment["dev"] = "Dev";
     DeploymentEnvironment["test"] = "Test";
     DeploymentEnvironment["prod"] = "Prod";
+    DeploymentEnvironment["dev (isolated)"] = "Dev (Isolated)";
+    DeploymentEnvironment["test (isolated)"] = "Test (Isolated)";
+    DeploymentEnvironment["prod (isolated)"] = "Prod (Isolated)";
 })(DeploymentEnvironment || (exports.DeploymentEnvironment = DeploymentEnvironment = {}));
 
 

@@ -14,5 +14,8 @@ export type ActionInput = Record<ActionInputKey, string>
 export enum DeploymentEnvironment {
   dev = 'Dev',
   test = 'Test',
-  prod = 'Prod'
+  prod = 'Prod',
+  'dev (isolated)' = 'Dev (Isolated)',
+  'test (isolated)' = 'Test (Isolated)',
+  'prod (isolated)' = 'Prod (Isolated)'
 }
