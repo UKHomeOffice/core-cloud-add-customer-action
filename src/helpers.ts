@@ -66,3 +66,11 @@ export const capitaliseFirstLetter = (input: string): string => {
 
   return firstLetter + restOfString
 }
+
+export const stripSpecialCharacters = (
+  input: string,
+  stripSpace = false
+): string => {
+  const pattern = stripSpace ? /[^a-zA-Z0-9]/g : /[^a-zA-Z0-9 ]/g
+  return input.replace(pattern, '')
+}
