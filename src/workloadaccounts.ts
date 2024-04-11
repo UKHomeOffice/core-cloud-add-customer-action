@@ -118,7 +118,7 @@ export class WorkloadAccount extends YAMLMap<string, string> {
     customerId: string,
     orgUnitName: string
   ): string => {
-    return `${capitaliseFirstLetter(customerId)}${toSentenceCase(orgUnitName)}`
+    return `${capitaliseFirstLetter(customerId)}${capitaliseFirstLetter(stripSpecialCharacters(orgUnitName, true))}`
   }
 
   private static getDescription = (

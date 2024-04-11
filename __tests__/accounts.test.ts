@@ -148,7 +148,16 @@ describe('workloadaccounts.test.ts', () => {
 
       const account = new WorkloadAccount(customerId, '', orgUnitName)
 
-      expect(account.getName()).toBe('PROJECTNAMEDev')
+      expect(account.getName()).toBe('PROJECTNAMEDEV')
+    })
+
+    it('creates WorkloadAccount customer correctly with special org unit', () => {
+      const customerId = 'ProjectName'
+      const orgUnitName = 'Dev (Isolated)'
+
+      const account = new WorkloadAccount(customerId, '', orgUnitName)
+
+      expect(account.getName()).toBe('ProjectNameDevIsolated')
     })
 
     it('creates WorkloadAccount description correctly lower', () => {

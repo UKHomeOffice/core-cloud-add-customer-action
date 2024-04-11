@@ -2990,7 +2990,7 @@ class WorkloadAccount extends yaml_1.YAMLMap {
         return this.get('email');
     }
     static getCustomerName = (customerId, orgUnitName) => {
-        return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}${(0, helpers_1.toSentenceCase)(orgUnitName)}`;
+        return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}${(0, helpers_1.capitaliseFirstLetter)((0, helpers_1.stripSpecialCharacters)(orgUnitName, true))}`;
     };
     static getDescription = (customerId, orgUnitName) => {
         return `The ${(0, helpers_1.toSentenceCase)(customerId)} ${(0, helpers_1.toSentenceCase)(orgUnitName)} Account`;
