@@ -2771,7 +2771,7 @@ const getOrganisationalUnits = (labels) => {
     if (labels === undefined || labels === '') {
         return [];
     }
-    const environmentStrings = labels.split(',');
+    const environmentStrings = labels.split(',').map(unit => unit.trim());
     const environmentSet = new Set();
     for (const environmentString of environmentStrings) {
         const environmentEnumValue = types_1.DeploymentEnvironment[environmentString.toLowerCase()];

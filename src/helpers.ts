@@ -25,7 +25,7 @@ export const getOrganisationalUnits = (
     return []
   }
 
-  const environmentStrings = labels.split(',')
+  const environmentStrings = labels.split(',').map(unit => unit.trim())
 
   const environmentSet = new Set<DeploymentEnvironment>()
 

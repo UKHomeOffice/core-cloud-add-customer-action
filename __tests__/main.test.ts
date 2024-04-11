@@ -67,7 +67,7 @@ describe('action', () => {
             case 'spoc_email':
               return 'account@example.com'
             case 'organisational_units':
-              return 'Dev,Test,Prod'
+              return 'Dev, Test,Prod '
             default:
               return ''
           }
