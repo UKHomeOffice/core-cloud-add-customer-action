@@ -148,7 +148,16 @@ describe('workloadaccounts.test.ts', () => {
 
       const account = new WorkloadAccount(customerId, '', orgUnitName)
 
-      expect(account.getName()).toBe('PROJECTNAMEDev')
+      expect(account.getName()).toBe('PROJECTNAMEDEV')
+    })
+
+    it('creates WorkloadAccount customer correctly with special org unit', () => {
+      const customerId = 'ProjectName'
+      const orgUnitName = 'Dev (Isolated)'
+
+      const account = new WorkloadAccount(customerId, '', orgUnitName)
+
+      expect(account.getName()).toBe('ProjectNameDevIsolated')
     })
 
     it('creates WorkloadAccount description correctly lower', () => {
@@ -187,6 +196,18 @@ describe('workloadaccounts.test.ts', () => {
       const account = new WorkloadAccount(customerId, email, orgUnitName)
 
       expect(account.getEmail()).toBe(`user+projectname-dev@example.com`)
+    })
+
+    it('creates WorkloadAccount email correctly with additional characters', () => {
+      const email = 'USER@EXAMPLE.COM'
+      const customerId = 'PROJECTNAME'
+      const orgUnitName = 'DEV (ISOLATED)'
+
+      const account = new WorkloadAccount(customerId, email, orgUnitName)
+
+      expect(account.getEmail()).toBe(
+        `user+projectname-dev-isolated@example.com`
+      )
     })
 
     it('throws error when email prefix greater than 64 length', () => {

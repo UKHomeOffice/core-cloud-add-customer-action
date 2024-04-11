@@ -1,6 +1,7 @@
 import {
   capitaliseFirstLetter,
   getOrganisationalUnits,
+  stripSpecialCharacters,
   toSentenceCase
 } from './helpers'
 import { Document, parseDocument, YAMLMap, YAMLSeq } from 'yaml'
@@ -117,7 +118,7 @@ export class WorkloadAccount extends YAMLMap<string, string> {
     customerId: string,
     orgUnitName: string
   ): string => {
-    return `${capitaliseFirstLetter(customerId)}${toSentenceCase(orgUnitName)}`
+    return `${capitaliseFirstLetter(customerId)}${capitaliseFirstLetter(stripSpecialCharacters(orgUnitName, true))}`
   }
 
   private static getDescription = (
@@ -135,7 +136,10 @@ export class WorkloadAccount extends YAMLMap<string, string> {
     orgUnitName: string
   ): string => {
     const emailSplit = email.split('@')
-    const emailPrefix = `${emailSplit[0]}+${customerId}-${orgUnitName}`
+    const formattedOrganisationUnit = stripSpecialCharacters(
+      orgUnitName
+    ).replace(/\s+/g, '-')
+    const emailPrefix = `${emailSplit[0]}+${customerId}-${formattedOrganisationUnit}`
     if (emailPrefix.length > 64) {
       throw new Error(
         `Email prefix '${emailPrefix}' is too long, must be 64 characters or less`

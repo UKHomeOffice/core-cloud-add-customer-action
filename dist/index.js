@@ -2751,7 +2751,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.capitaliseFirstLetter = exports.toSentenceCase = exports.getOrganisationalUnits = exports.getActionInputs = void 0;
+exports.stripSpecialCharacters = exports.capitaliseFirstLetter = exports.toSentenceCase = exports.getOrganisationalUnits = exports.getActionInputs = void 0;
 const types_1 = __nccwpck_require__(5077);
 const core = __importStar(__nccwpck_require__(2186));
 const getActionInputs = () => {
@@ -2803,6 +2803,11 @@ const capitaliseFirstLetter = (input) => {
     return firstLetter + restOfString;
 };
 exports.capitaliseFirstLetter = capitaliseFirstLetter;
+const stripSpecialCharacters = (input, stripSpace = false) => {
+    const pattern = stripSpace ? /[^a-zA-Z0-9]/g : /[^a-zA-Z0-9 ]/g;
+    return input.replace(pattern, '');
+};
+exports.stripSpecialCharacters = stripSpecialCharacters;
 
 
 /***/ }),
@@ -2985,14 +2990,15 @@ class WorkloadAccount extends yaml_1.YAMLMap {
         return this.get('email');
     }
     static getCustomerName = (customerId, orgUnitName) => {
-        return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}${(0, helpers_1.toSentenceCase)(orgUnitName)}`;
+        return `${(0, helpers_1.capitaliseFirstLetter)(customerId)}${(0, helpers_1.capitaliseFirstLetter)((0, helpers_1.stripSpecialCharacters)(orgUnitName, true))}`;
     };
     static getDescription = (customerId, orgUnitName) => {
         return `The ${(0, helpers_1.toSentenceCase)(customerId)} ${(0, helpers_1.toSentenceCase)(orgUnitName)} Account`;
     };
     static getEmail = (email, customerId, orgUnitName) => {
         const emailSplit = email.split('@');
-        const emailPrefix = `${emailSplit[0]}+${customerId}-${orgUnitName}`;
+        const formattedOrganisationUnit = (0, helpers_1.stripSpecialCharacters)(orgUnitName).replace(/\s+/g, '-');
+        const emailPrefix = `${emailSplit[0]}+${customerId}-${formattedOrganisationUnit}`;
         if (emailPrefix.length > 64) {
             throw new Error(`Email prefix '${emailPrefix}' is too long, must be 64 characters or less`);
         }
